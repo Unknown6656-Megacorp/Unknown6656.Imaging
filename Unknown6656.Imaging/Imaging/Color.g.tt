@@ -1,0 +1,2193 @@
+﻿<#@ template debug="false" hostspecific="false" language="C#" #>
+<#@ assembly name="System.Core" #>
+<#@ assembly name="System.Drawing" #>
+<#@ import namespace="System.Linq" #>
+<#@ import namespace="System.Text" #>
+<#@ import namespace="System.Text.RegularExpressions" #>
+<#@ import namespace="System.Collections.Generic" #>
+<#@ import namespace="System.Reflection" #>
+<#@ import namespace="System.Drawing" #>
+<#@ output extension=".cs" #>
+<#
+var colors = typeof(Color).GetProperties(BindingFlags.Static | BindingFlags.Public).Select(p => {
+    int argb = ((Color)p.GetValue(null)).ToArgb();
+
+    return (hex: argb.ToString("x8"), name: p.Name);
+}).ToList();
+var dup_colors = new List<(string hex, string name, string[] aliases)>();
+var custom_colors = new List<(string hex, string name)>();
+
+custom_colors.AddRange(new[] {
+    (2000, 15, 4020, "FF9BB7D4"),
+    (2001, 17, 203, "FFC74375"),
+    (2002, 19, 166, "FFBF1932"),
+    (2003, 14, 481, "FF7BC4C4"),
+    (2004, 17, 145, "FFE2583E"),
+    (2005, 15, 5217, "FF53B0AE"),
+    (2006, 13, 1106, "FFDECDBE"),
+    (2007, 19, 1557, "FF9B1B30"),
+    (2008, 18, 3943, "FF5A5B9F"),
+    (2009, 14, 0848, "FFF0C05A"),
+    (2010, 15, 5519, "FF45B5AA"),
+    (2011, 18, 2120, "FFD94F70"),
+    (2012, 17, 1463, "FFDD4124"),
+    (2013, 17, 5641, "FF009473"),
+    (2014, 18, 3224, "FFB163A3"),
+    (2015, 18, 1438, "FF955251"),
+    (2016, 13, 1520, "FFF7CAC9"),
+    (2017, 15, 0343, "FF88B04B"),
+    (2018, 18, 3838, "FF5F4B8B"),
+    (2019, 16, 1546, "FFFF6F61"),
+    (2020, 19, 4052, "FF0F4C81"),
+    (2021, 17, 5104, "FF939597"),
+}.SelectMany(t => new[] {
+    (t.Item4, "Pantone" + t.Item1),
+    (t.Item4, $"Pantone_{t.Item2}_{t.Item3}"),
+}));
+custom_colors.AddRange(new[] {
+    ("FF92A8D1", "Pantone_15_3919"),
+    ("FFF5DF4D", "Pantone_13_0647"),
+    ("FF8FFE09", "XKCD_AcidGreen"),
+    ("FFBD6C48", "XKCD_Adobe"),
+    ("FF54AC68", "XKCD_Algae"),
+    ("FF21C36F", "XKCD_AlgaeGreen"),
+    ("FF070D0D", "XKCD_AlmostBlack"),
+    ("FFFEB308", "XKCD_Amber"),
+    ("FF9B5FC0", "XKCD_Amethyst"),
+    ("FF6ECB3C", "XKCD_Apple"),
+    ("FF76CD26", "XKCD_AppleGreen"),
+    ("FFFFB16D", "XKCD_Apricot"),
+    ("FF13EAC9", "XKCD_Aqua"),
+    ("FF02D8E9", "XKCD_AquaBlue"),
+    ("FF12E193", "XKCD_AquaGreen"),
+    ("FF2EE8BB", "XKCD_AquaMarine"),
+    ("FF04D8B2", "XKCD_Aquamarine"),
+    ("FF4B5D16", "XKCD_ArmyGreen"),
+    ("FF77AB56", "XKCD_Asparagus"),
+    ("FF3D0734", "XKCD_Aubergine"),
+    ("FF9A3001", "XKCD_Auburn"),
+    ("FF90B134", "XKCD_Avocado"),
+    ("FF87A922", "XKCD_AvocadoGreen"),
+    ("FF1D5DEC", "XKCD_Azul"),
+    ("FF069AF3", "XKCD_Azure"),
+    ("FFA2CFFE", "XKCD_BabyBlue"),
+    ("FF8CFF9E", "XKCD_BabyGreen"),
+    ("FFFFB7CE", "XKCD_BabyPink"),
+    ("FFAB9004", "XKCD_BabyPoo"),
+    ("FF937C00", "XKCD_BabyPoop"),
+    ("FF8F9805", "XKCD_BabyPoopGreen"),
+    ("FFB6C406", "XKCD_BabyPukeGreen"),
+    ("FFCA9BF7", "XKCD_BabyPurple"),
+    ("FFAD900D", "XKCD_BabyShitBrown"),
+    ("FF889717", "XKCD_BabyShitGreen"),
+    ("FFFFFF7E", "XKCD_Banana"),
+    ("FFFAFE4B", "XKCD_BananaYellow"),
+    ("FFFE46A5", "XKCD_BarbiePink"),
+    ("FF94AC02", "XKCD_BarfGreen"),
+    ("FFAC1DB8", "XKCD_Barney"),
+    ("FFA00498", "XKCD_BarneyPurple"),
+    ("FF6B7C85", "XKCD_BattleshipGrey"),
+    ("FFE6DAA6", "XKCD_Beige"),
+    ("FF990F4B", "XKCD_Berry"),
+    ("FFB5C306", "XKCD_Bile"),
+    ("FFAFA88B", "XKCD_Bland"),
+    ("FF770001", "XKCD_Blood"),
+    ("FFFE4B03", "XKCD_BloodOrange"),
+    ("FF980002", "XKCD_BloodRed"),
+    ("FF0343DF", "XKCD_Blue"),
+    ("FF2242C7", "XKCD_BlueBlue"),
+    ("FF137E6D", "XKCD_BlueGreen"),
+    ("FF607C8E", "XKCD_BlueGrey"),
+    ("FF5729CE", "XKCD_BluePurple"),
+    ("FF5D06E9", "XKCD_BlueViolet"),
+    ("FF533CC6", "XKCD_BlueWithAHintOfPurple"),
+    ("FF0F9B8E", "XKCD_BlueOrGreen"),
+    ("FF758DA3", "XKCD_BlueOrGrey"),
+    ("FF5A06EF", "XKCD_BlueOrPurple"),
+    ("FF464196", "XKCD_Blueberry"),
+    ("FF017A79", "XKCD_Bluegreen"),
+    ("FF85A3B2", "XKCD_Bluegrey"),
+    ("FF2BB179", "XKCD_BlueyGreen"),
+    ("FF89A0B0", "XKCD_BlueyGrey"),
+    ("FF6241C7", "XKCD_BlueyPurple"),
+    ("FF2976BB", "XKCD_Bluish"),
+    ("FF10A674", "XKCD_BluishGreen"),
+    ("FF748B97", "XKCD_BluishGrey"),
+    ("FF703BE7", "XKCD_BluishPurple"),
+    ("FF5539CC", "XKCD_Blurple"),
+    ("FFF29E8E", "XKCD_Blush"),
+    ("FFFE828C", "XKCD_BlushPink"),
+    ("FF9BB53C", "XKCD_Booger"),
+    ("FF96B403", "XKCD_BoogerGreen"),
+    ("FF7B002C", "XKCD_Bordeaux"),
+    ("FF63B365", "XKCD_BoringGreen"),
+    ("FF044A05", "XKCD_BottleGreen"),
+    ("FFA03623", "XKCD_Brick"),
+    ("FFC14A09", "XKCD_BrickOrange"),
+    ("FF8F1402", "XKCD_BrickRed"),
+    ("FF0BF9EA", "XKCD_BrightAqua"),
+    ("FF0165FC", "XKCD_BrightBlue"),
+    ("FF41FDFE", "XKCD_BrightCyan"),
+    ("FF01FF07", "XKCD_BrightGreen"),
+    ("FFC760FF", "XKCD_BrightLavender"),
+    ("FF26F7FD", "XKCD_BrightLightBlue"),
+    ("FF2DFE54", "XKCD_BrightLightGreen"),
+    ("FFC95EFB", "XKCD_BrightLilac"),
+    ("FF87FD05", "XKCD_BrightLime"),
+    ("FF65FE08", "XKCD_BrightLimeGreen"),
+    ("FFFF08E8", "XKCD_BrightMagenta"),
+    ("FF9CBB04", "XKCD_BrightOlive"),
+    ("FFFF5B00", "XKCD_BrightOrange"),
+    ("FFFE01B1", "XKCD_BrightPink"),
+    ("FFBE03FD", "XKCD_BrightPurple"),
+    ("FFFF000D", "XKCD_BrightRed"),
+    ("FF05FFA6", "XKCD_BrightSeaGreen"),
+    ("FF02CCFE", "XKCD_BrightSkyBlue"),
+    ("FF01F9C6", "XKCD_BrightTeal"),
+    ("FF0FFEF9", "XKCD_BrightTurquoise"),
+    ("FFAD0AFD", "XKCD_BrightViolet"),
+    ("FFFFFD01", "XKCD_BrightYellow"),
+    ("FF9DFF00", "XKCD_BrightYellowGreen"),
+    ("FF05480D", "XKCD_BritishRacingGreen"),
+    ("FFA87900", "XKCD_Bronze"),
+    ("FF653700", "XKCD_Brown"),
+    ("FF706C11", "XKCD_BrownGreen"),
+    ("FF8D8468", "XKCD_BrownGrey"),
+    ("FFB96902", "XKCD_BrownOrange"),
+    ("FF922B05", "XKCD_BrownRed"),
+    ("FFB29705", "XKCD_BrownYellow"),
+    ("FF9C6D57", "XKCD_Brownish"),
+    ("FF6A6E09", "XKCD_BrownishGreen"),
+    ("FF86775F", "XKCD_BrownishGrey"),
+    ("FFCB7723", "XKCD_BrownishOrange"),
+    ("FFC27E79", "XKCD_BrownishPink"),
+    ("FF76424E", "XKCD_BrownishPurple"),
+    ("FF9E3623", "XKCD_BrownishRed"),
+    ("FFC9B003", "XKCD_BrownishYellow"),
+    ("FF6F6C0A", "XKCD_BrownyGreen"),
+    ("FFCA6B02", "XKCD_BrownyOrange"),
+    ("FF7E4071", "XKCD_Bruise"),
+    ("FFFF69AF", "XKCD_BubbleGumPink"),
+    ("FFFF6CB5", "XKCD_Bubblegum"),
+    ("FFFE83CC", "XKCD_LightBubblegumPink"),
+    ("FFFEF69E", "XKCD_Buff"),
+    ("FF610023", "XKCD_Burgundy"),
+    ("FFC04E01", "XKCD_BurntOrange"),
+    ("FF9F2305", "XKCD_BurntRed"),
+    ("FFB75203", "XKCD_BurntSiena"),
+    ("FFB04E0F", "XKCD_BurntSienna"),
+    ("FFA0450E", "XKCD_BurntUmber"),
+    ("FFD5AB09", "XKCD_BurntYellow"),
+    ("FF6832E3", "XKCD_Burple"),
+    ("FFFFFF81", "XKCD_Butter"),
+    ("FFFFFD74", "XKCD_ButterYellow"),
+    ("FFFDB147", "XKCD_Butterscotch"),
+    ("FF4E7496", "XKCD_CadetBlue"),
+    ("FFC69F59", "XKCD_Camel"),
+    ("FF7F8F4E", "XKCD_Camo"),
+    ("FF526525", "XKCD_CamoGreen"),
+    ("FF4B6113", "XKCD_CamouflageGreen"),
+    ("FFFDFF63", "XKCD_Canary"),
+    ("FFFFFE40", "XKCD_CanaryYellow"),
+    ("FFFF63E9", "XKCD_CandyPink"),
+    ("FFAF6F09", "XKCD_Caramel"),
+    ("FF9D0216", "XKCD_Carmine"),
+    ("FFFD798F", "XKCD_Carnation"),
+    ("FFFF7FA7", "XKCD_CarnationPink"),
+    ("FF8AB8FE", "XKCD_CarolinaBlue"),
+    ("FFBEFDB7", "XKCD_Celadon"),
+    ("FFC1FD95", "XKCD_Celery"),
+    ("FFA5A391", "XKCD_Cement"),
+    ("FFDE0C62", "XKCD_Cerise"),
+    ("FF0485D1", "XKCD_Cerulean"),
+    ("FF056EEE", "XKCD_CeruleanBlue"),
+    ("FF343837", "XKCD_Charcoal"),
+    ("FF3C4142", "XKCD_CharcoalGrey"),
+    ("FFC1F80A", "XKCD_Chartreuse"),
+    ("FFCF0234", "XKCD_Cherry"),
+    ("FFF7022A", "XKCD_CherryRed"),
+    ("FF742802", "XKCD_Chestnut"),
+    ("FF3D1C02", "XKCD_Chocolate"),
+    ("FF411900", "XKCD_ChocolateBrown"),
+    ("FFAC4F06", "XKCD_Cinnamon"),
+    ("FF680018", "XKCD_Claret"),
+    ("FFB66A50", "XKCD_Clay"),
+    ("FFB2713D", "XKCD_ClayBrown"),
+    ("FF247AFD", "XKCD_ClearBlue"),
+    ("FFACC2D9", "XKCD_CloudyBlue"),
+    ("FF1E488F", "XKCD_Cobalt"),
+    ("FF030AA7", "XKCD_CobaltBlue"),
+    ("FF875F42", "XKCD_Cocoa"),
+    ("FFA6814C", "XKCD_Coffee"),
+    ("FF4984B8", "XKCD_CoolBlue"),
+    ("FF33B864", "XKCD_CoolGreen"),
+    ("FF95A3A6", "XKCD_CoolGrey"),
+    ("FFB66325", "XKCD_Copper"),
+    ("FFFC5A50", "XKCD_Coral"),
+    ("FFFF6163", "XKCD_CoralPink"),
+    ("FF6A79F7", "XKCD_Cornflower"),
+    ("FF5170D7", "XKCD_CornflowerBlue"),
+    ("FF9E003A", "XKCD_Cranberry"),
+    ("FFFFFFC2", "XKCD_Cream"),
+    ("FFFFFFB6", "XKCD_Creme"),
+    ("FF8C000F", "XKCD_Crimson"),
+    ("FFFFFD78", "XKCD_Custard"),
+    ("FF00FFFF", "XKCD_Cyan"),
+    ("FFFEDF08", "XKCD_Dandelion"),
+    ("FF1B2431", "XKCD_Dark"),
+    ("FF05696B", "XKCD_DarkAqua"),
+    ("FF017371", "XKCD_DarkAquamarine"),
+    ("FFAC9362", "XKCD_DarkBeige"),
+    ("FF00035B", "XKCD_DarkBlue"),
+    ("FF005249", "XKCD_DarkBlueGreen"),
+    ("FF1F3B4D", "XKCD_DarkBlueGrey"),
+    ("FF341C02", "XKCD_DarkBrown"),
+    ("FFCF524E", "XKCD_DarkCoral"),
+    ("FFFFF39A", "XKCD_DarkCream"),
+    ("FF0A888A", "XKCD_DarkCyan"),
+    ("FF002D04", "XKCD_DarkForestGreen"),
+    ("FF9D0759", "XKCD_DarkFuchsia"),
+    ("FFB59410", "XKCD_DarkGold"),
+    ("FF388004", "XKCD_DarkGrassGreen"),
+    ("FF033500", "XKCD_DarkGreen"),
+    ("FF1F6357", "XKCD_DarkGreenBlue"),
+    ("FF363737", "XKCD_DarkGrey"),
+    ("FF29465B", "XKCD_DarkGreyBlue"),
+    ("FFD90166", "XKCD_DarkHotPink"),
+    ("FF1F0954", "XKCD_DarkIndigo"),
+    ("FF9B8F55", "XKCD_DarkKhaki"),
+    ("FF856798", "XKCD_DarkLavender"),
+    ("FF9C6DA5", "XKCD_DarkLilac"),
+    ("FF84B701", "XKCD_DarkLime"),
+    ("FF7EBD01", "XKCD_DarkLimeGreen"),
+    ("FF960056", "XKCD_DarkMagenta"),
+    ("FF3C0008", "XKCD_DarkMaroon"),
+    ("FF874C62", "XKCD_DarkMauve"),
+    ("FF48C072", "XKCD_DarkMint"),
+    ("FF20C073", "XKCD_DarkMintGreen"),
+    ("FFA88905", "XKCD_DarkMustard"),
+    ("FF000435", "XKCD_DarkNavy"),
+    ("FF00022E", "XKCD_DarkNavyBlue"),
+    ("FF373E02", "XKCD_DarkOlive"),
+    ("FF3C4D03", "XKCD_DarkOliveGreen"),
+    ("FFC65102", "XKCD_DarkOrange"),
+    ("FF56AE57", "XKCD_DarkPastelGreen"),
+    ("FFDE7E5D", "XKCD_DarkPeach"),
+    ("FF665FD1", "XKCD_DarkPeriwinkle"),
+    ("FFCB416B", "XKCD_DarkPink"),
+    ("FF3F012C", "XKCD_DarkPlum"),
+    ("FF35063E", "XKCD_DarkPurple"),
+    ("FF840000", "XKCD_DarkRed"),
+    ("FFB5485D", "XKCD_DarkRose"),
+    ("FF02066F", "XKCD_DarkRoyalBlue"),
+    ("FF598556", "XKCD_DarkSage"),
+    ("FFC85A53", "XKCD_DarkSalmon"),
+    ("FFA88F59", "XKCD_DarkSand"),
+    ("FF11875D", "XKCD_DarkSeaGreen"),
+    ("FF1FB57A", "XKCD_DarkSeafoam"),
+    ("FF3EAF76", "XKCD_DarkSeafoamGreen"),
+    ("FF448EE4", "XKCD_DarkSkyBlue"),
+    ("FF214761", "XKCD_DarkSlateBlue"),
+    ("FFAF884A", "XKCD_DarkTan"),
+    ("FF7F684E", "XKCD_DarkTaupe"),
+    ("FF014D4E", "XKCD_DarkTeal"),
+    ("FF045C5A", "XKCD_DarkTurquoise"),
+    ("FF34013F", "XKCD_DarkViolet"),
+    ("FFD5B60A", "XKCD_DarkYellow"),
+    ("FF728F02", "XKCD_DarkYellowGreen"),
+    ("FF030764", "XKCD_Darkblue"),
+    ("FF054907", "XKCD_Darkgreen"),
+    ("FF014182", "XKCD_DarkishBlue"),
+    ("FF287C37", "XKCD_DarkishGreen"),
+    ("FFDA467D", "XKCD_DarkishPink"),
+    ("FF751973", "XKCD_DarkishPurple"),
+    ("FFA90308", "XKCD_DarkishRed"),
+    ("FF08787F", "XKCD_DeepAqua"),
+    ("FF040273", "XKCD_DeepBlue"),
+    ("FF410200", "XKCD_DeepBrown"),
+    ("FF02590F", "XKCD_DeepGreen"),
+    ("FF8D5EB7", "XKCD_DeepLavender"),
+    ("FF966EBD", "XKCD_DeepLilac"),
+    ("FFA0025C", "XKCD_DeepMagenta"),
+    ("FFDC4D01", "XKCD_DeepOrange"),
+    ("FFCB0162", "XKCD_DeepPink"),
+    ("FF36013F", "XKCD_DeepPurple"),
+    ("FF9A0200", "XKCD_DeepRed"),
+    ("FFC74767", "XKCD_DeepRose"),
+    ("FF015482", "XKCD_DeepSeaBlue"),
+    ("FF0D75F8", "XKCD_DeepSkyBlue"),
+    ("FF00555A", "XKCD_DeepTeal"),
+    ("FF017374", "XKCD_DeepTurquoise"),
+    ("FF490648", "XKCD_DeepViolet"),
+    ("FF3B638C", "XKCD_Denim"),
+    ("FF3B5B92", "XKCD_DenimBlue"),
+    ("FFCCAD60", "XKCD_Desert"),
+    ("FF9F8303", "XKCD_Diarrhea"),
+    ("FF8A6E45", "XKCD_Dirt"),
+    ("FF836539", "XKCD_DirtBrown"),
+    ("FF3F829D", "XKCD_DirtyBlue"),
+    ("FF667E2C", "XKCD_DirtyGreen"),
+    ("FFC87606", "XKCD_DirtyOrange"),
+    ("FFCA7B80", "XKCD_DirtyPink"),
+    ("FF734A65", "XKCD_DirtyPurple"),
+    ("FFCDC50A", "XKCD_DirtyYellow"),
+    ("FF3E82FC", "XKCD_DodgerBlue"),
+    ("FF828344", "XKCD_Drab"),
+    ("FF749551", "XKCD_DrabGreen"),
+    ("FF4B0101", "XKCD_DriedBlood"),
+    ("FFC3FBF4", "XKCD_DuckEggBlue"),
+    ("FF49759C", "XKCD_DullBlue"),
+    ("FF876E4B", "XKCD_DullBrown"),
+    ("FF74A662", "XKCD_DullGreen"),
+    ("FFD8863B", "XKCD_DullOrange"),
+    ("FFD5869D", "XKCD_DullPink"),
+    ("FF84597E", "XKCD_DullPurple"),
+    ("FFBB3F3F", "XKCD_DullRed"),
+    ("FF5F9E8F", "XKCD_DullTeal"),
+    ("FFEEDC5B", "XKCD_DullYellow"),
+    ("FF4E5481", "XKCD_Dusk"),
+    ("FF26538D", "XKCD_DuskBlue"),
+    ("FF475F94", "XKCD_DuskyBlue"),
+    ("FFCC7A8B", "XKCD_DuskyPink"),
+    ("FF895B7B", "XKCD_DuskyPurple"),
+    ("FFBA6873", "XKCD_DuskyRose"),
+    ("FFB2996E", "XKCD_Dust"),
+    ("FF5A86AD", "XKCD_DustyBlue"),
+    ("FF76A973", "XKCD_DustyGreen"),
+    ("FFAC86A8", "XKCD_DustyLavender"),
+    ("FFF0833A", "XKCD_DustyOrange"),
+    ("FFD58A94", "XKCD_DustyPink"),
+    ("FF825F87", "XKCD_DustyPurple"),
+    ("FFB9484E", "XKCD_DustyRed"),
+    ("FFC0737A", "XKCD_DustyRose"),
+    ("FF4C9085", "XKCD_DustyTeal"),
+    ("FFA2653E", "XKCD_Earth"),
+    ("FF8CFD7E", "XKCD_EasterGreen"),
+    ("FFC071FE", "XKCD_EasterPurple"),
+    ("FFFEFFCA", "XKCD_Ecru"),
+    ("FFFFFCC4", "XKCD_EggShell"),
+    ("FF380835", "XKCD_Eggplant"),
+    ("FF430541", "XKCD_EggplantPurple"),
+    ("FFFFFFD4", "XKCD_Eggshell"),
+    ("FFC4FFF7", "XKCD_EggshellBlue"),
+    ("FF0652FF", "XKCD_ElectricBlue"),
+    ("FF21FC0D", "XKCD_ElectricGreen"),
+    ("FFA8FF04", "XKCD_ElectricLime"),
+    ("FFFF0490", "XKCD_ElectricPink"),
+    ("FFAA23FF", "XKCD_ElectricPurple"),
+    ("FF01A049", "XKCD_Emerald"),
+    ("FF028F1E", "XKCD_EmeraldGreen"),
+    ("FF05472A", "XKCD_Evergreen"),
+    ("FF658CBB", "XKCD_FadedBlue"),
+    ("FF7BB274", "XKCD_FadedGreen"),
+    ("FFF0944D", "XKCD_FadedOrange"),
+    ("FFDE9DAC", "XKCD_FadedPink"),
+    ("FF916E99", "XKCD_FadedPurple"),
+    ("FFD3494E", "XKCD_FadedRed"),
+    ("FFFEFF7F", "XKCD_FadedYellow"),
+    ("FFCFAF7B", "XKCD_Fawn"),
+    ("FF63A950", "XKCD_Fern"),
+    ("FF548D44", "XKCD_FernGreen"),
+    ("FFFE0002", "XKCD_FireEngineRed"),
+    ("FF3C73A8", "XKCD_FlatBlue"),
+    ("FF699D4C", "XKCD_FlatGreen"),
+    ("FF08FF08", "XKCD_FluorescentGreen"),
+    ("FF0AFF02", "XKCD_FluroGreen"),
+    ("FF90FDA9", "XKCD_FoamGreen"),
+    ("FF0B5509", "XKCD_Forest"),
+    ("FF06470C", "XKCD_ForestGreen"),
+    ("FF154406", "XKCD_ForrestGreen"),
+    ("FF436BAD", "XKCD_FrenchBlue"),
+    ("FF69D84F", "XKCD_FreshGreen"),
+    ("FF58BC08", "XKCD_FrogGreen"),
+    ("FFED0DD9", "XKCD_Fuchsia"),
+    ("FFDBB40C", "XKCD_Gold"),
+    ("FFF5BF03", "XKCD_Golden"),
+    ("FFB27A01", "XKCD_GoldenBrown"),
+    ("FFF9BC08", "XKCD_GoldenRod"),
+    ("FFFEC615", "XKCD_GoldenYellow"),
+    ("FFFAC205", "XKCD_Goldenrod"),
+    ("FF6C3461", "XKCD_Grape"),
+    ("FF5D1451", "XKCD_GrapePurple"),
+    ("FFFD5956", "XKCD_Grapefruit"),
+    ("FF5CAC2D", "XKCD_Grass"),
+    ("FF3F9B0B", "XKCD_GrassGreen"),
+    ("FF419C03", "XKCD_GrassyGreen"),
+    ("FF15B01A", "XKCD_Green"),
+    ("FF5EDC1F", "XKCD_GreenApple"),
+    ("FF06B48B", "XKCD_GreenBlue"),
+    ("FF544E03", "XKCD_GreenBrown"),
+    ("FF77926F", "XKCD_GreenGrey"),
+    ("FF0CB577", "XKCD_GreenTeal"),
+    ("FFC9FF27", "XKCD_GreenYellow"),
+    ("FF01C08D", "XKCD_GreenOrBlue"),
+    ("FFB5CE08", "XKCD_GreenOrYellow"),
+    ("FF23C48B", "XKCD_Greenblue"),
+    ("FF40A368", "XKCD_Greenish"),
+    ("FFC9D179", "XKCD_GreenishBeige"),
+    ("FF0B8B87", "XKCD_GreenishBlue"),
+    ("FF696112", "XKCD_GreenishBrown"),
+    ("FF2AFEB7", "XKCD_GreenishCyan"),
+    ("FF96AE8D", "XKCD_GreenishGrey"),
+    ("FFBCCB7A", "XKCD_GreenishTan"),
+    ("FF32BF84", "XKCD_GreenishTeal"),
+    ("FF00FBB0", "XKCD_GreenishTurquoise"),
+    ("FFCDFD02", "XKCD_GreenishYellow"),
+    ("FF42B395", "XKCD_GreenyBlue"),
+    ("FF696006", "XKCD_GreenyBrown"),
+    ("FF7EA07A", "XKCD_GreenyGrey"),
+    ("FFC6F808", "XKCD_GreenyYellow"),
+    ("FF929591", "XKCD_Grey"),
+    ("FF6B8BA4", "XKCD_GreyBlue"),
+    ("FF7F7053", "XKCD_GreyBrown"),
+    ("FF789B73", "XKCD_GreyGreen"),
+    ("FFC3909B", "XKCD_GreyPink"),
+    ("FF826D8C", "XKCD_GreyPurple"),
+    ("FF5E9B8A", "XKCD_GreyTeal"),
+    ("FF647D8E", "XKCD_GreyOrBlue"),
+    ("FF86A17D", "XKCD_GreyOrGreen"),
+    ("FF77A1B5", "XKCD_Greyblue"),
+    ("FFA8A495", "XKCD_Greyish"),
+    ("FF5E819D", "XKCD_GreyishBlue"),
+    ("FF7A6A4F", "XKCD_GreyishBrown"),
+    ("FF82A67D", "XKCD_GreyishGreen"),
+    ("FFC88D94", "XKCD_GreyishPink"),
+    ("FF887191", "XKCD_GreyishPurple"),
+    ("FF719F91", "XKCD_GreyishTeal"),
+    ("FFA0BF16", "XKCD_GrossGreen"),
+    ("FF536267", "XKCD_Gunmetal"),
+    ("FF8E7618", "XKCD_Hazel"),
+    ("FFA484AC", "XKCD_Heather"),
+    ("FFD94FF5", "XKCD_Heliotrope"),
+    ("FF1BFC06", "XKCD_HighlighterGreen"),
+    ("FF9BE5AA", "XKCD_HospitalGreen"),
+    ("FF25FF29", "XKCD_HotGreen"),
+    ("FFF504C9", "XKCD_HotMagenta"),
+    ("FFFF028D", "XKCD_HotPink"),
+    ("FFCB00F5", "XKCD_HotPurple"),
+    ("FF0B4008", "XKCD_HunterGreen"),
+    ("FFD6FFFA", "XKCD_Ice"),
+    ("FFD7FFFE", "XKCD_IceBlue"),
+    ("FF8FAE22", "XKCD_IckyGreen"),
+    ("FF850E04", "XKCD_IndianRed"),
+    ("FF380282", "XKCD_Indigo"),
+    ("FF3A18B1", "XKCD_IndigoBlue"),
+    ("FF6258C4", "XKCD_Iris"),
+    ("FF019529", "XKCD_IrishGreen"),
+    ("FFFFFFCB", "XKCD_Ivory"),
+    ("FF1FA774", "XKCD_Jade"),
+    ("FF2BAF6A", "XKCD_JadeGreen"),
+    ("FF048243", "XKCD_JungleGreen"),
+    ("FF009337", "XKCD_KelleyGreen"),
+    ("FF02AB2E", "XKCD_KellyGreen"),
+    ("FF5CB200", "XKCD_KermitGreen"),
+    ("FFAEFF6E", "XKCD_KeyLime"),
+    ("FFAAA662", "XKCD_Khaki"),
+    ("FF728639", "XKCD_KhakiGreen"),
+    ("FF9CEF43", "XKCD_Kiwi"),
+    ("FF8EE53F", "XKCD_KiwiGreen"),
+    ("FFC79FEF", "XKCD_Lavender"),
+    ("FF8B88F8", "XKCD_LavenderBlue"),
+    ("FFDD85D7", "XKCD_LavenderPink"),
+    ("FF4DA409", "XKCD_LawnGreen"),
+    ("FF71AA34", "XKCD_Leaf"),
+    ("FF5CA904", "XKCD_LeafGreen"),
+    ("FF51B73B", "XKCD_LeafyGreen"),
+    ("FFAC7434", "XKCD_Leather"),
+    ("FFFDFF52", "XKCD_Lemon"),
+    ("FFADF802", "XKCD_LemonGreen"),
+    ("FFBFFE28", "XKCD_LemonLime"),
+    ("FFFDFF38", "XKCD_LemonYellow"),
+    ("FF8FB67B", "XKCD_Lichen"),
+    ("FF8CFFDB", "XKCD_LightAqua"),
+    ("FF7BFDC7", "XKCD_LightAquamarine"),
+    ("FFFFFEB6", "XKCD_LightBeige"),
+    ("FF95D0FC", "XKCD_LightBlue"),
+    ("FF7EFBB3", "XKCD_LightBlueGreen"),
+    ("FFB7C9E2", "XKCD_LightBlueGrey"),
+    ("FF76FDA8", "XKCD_LightBluishGreen"),
+    ("FF53FE5C", "XKCD_LightBrightGreen"),
+    ("FFAD8150", "XKCD_LightBrown"),
+    ("FFA8415B", "XKCD_LightBurgundy"),
+    ("FFACFFFC", "XKCD_LightCyan"),
+    ("FF894585", "XKCD_LightEggplant"),
+    ("FF4F9153", "XKCD_LightForestGreen"),
+    ("FFFDDC5C", "XKCD_LightGold"),
+    ("FF9AF764", "XKCD_LightGrassGreen"),
+    ("FF96F97B", "XKCD_LightGreen"),
+    ("FF56FCA2", "XKCD_LightGreenBlue"),
+    ("FF63F7B4", "XKCD_LightGreenishBlue"),
+    ("FFD8DCD6", "XKCD_LightGrey"),
+    ("FF9DBCD4", "XKCD_LightGreyBlue"),
+    ("FFB7E1A1", "XKCD_LightGreyGreen"),
+    ("FF6D5ACF", "XKCD_LightIndigo"),
+    ("FFE6F2A2", "XKCD_LightKhaki"),
+    ("FFEFC0FE", "XKCD_LightLavendar"),
+    ("FFDFC5FE", "XKCD_LightLavender"),
+    ("FFCAFFFB", "XKCD_LightLightBlue"),
+    ("FFC8FFB0", "XKCD_LightLightGreen"),
+    ("FFEDC8FF", "XKCD_LightLilac"),
+    ("FFAEFD6C", "XKCD_LightLime"),
+    ("FFB9FF66", "XKCD_LightLimeGreen"),
+    ("FFFA5FF7", "XKCD_LightMagenta"),
+    ("FFA24857", "XKCD_LightMaroon"),
+    ("FFC292A1", "XKCD_LightMauve"),
+    ("FFB6FFBB", "XKCD_LightMint"),
+    ("FFA6FBB2", "XKCD_LightMintGreen"),
+    ("FFA6C875", "XKCD_LightMossGreen"),
+    ("FFF7D560", "XKCD_LightMustard"),
+    ("FF155084", "XKCD_LightNavy"),
+    ("FF2E5A88", "XKCD_LightNavyBlue"),
+    ("FF4EFD54", "XKCD_LightNeonGreen"),
+    ("FFACBF69", "XKCD_LightOlive"),
+    ("FFA4BE5C", "XKCD_LightOliveGreen"),
+    ("FFFDAA48", "XKCD_LightOrange"),
+    ("FFB2FBA5", "XKCD_LightPastelGreen"),
+    ("FFC4FE82", "XKCD_LightPeaGreen"),
+    ("FFFFD8B1", "XKCD_LightPeach"),
+    ("FFC1C6FC", "XKCD_LightPeriwinkle"),
+    ("FFFFD1DF", "XKCD_LightPink"),
+    ("FF9D5783", "XKCD_LightPlum"),
+    ("FFBF77F6", "XKCD_LightPurple"),
+    ("FFFF474C", "XKCD_LightRed"),
+    ("FFFFC5CB", "XKCD_LightRose"),
+    ("FF3A2EFE", "XKCD_LightRoyalBlue"),
+    ("FFBCECAC", "XKCD_LightSage"),
+    ("FFFEA993", "XKCD_LightSalmon"),
+    ("FF98F6B0", "XKCD_LightSeaGreen"),
+    ("FFA0FEBF", "XKCD_LightSeafoam"),
+    ("FFA7FFB5", "XKCD_LightSeafoamGreen"),
+    ("FFC6FCFF", "XKCD_LightSkyBlue"),
+    ("FFFBEEAC", "XKCD_LightTan"),
+    ("FF90E4C1", "XKCD_LightTeal"),
+    ("FF7EF4CC", "XKCD_LightTurquoise"),
+    ("FFB36FF6", "XKCD_LightUrple"),
+    ("FFD6B4FC", "XKCD_LightViolet"),
+    ("FFFFFE7A", "XKCD_LightYellow"),
+    ("FFCCFD7F", "XKCD_LightYellowGreen"),
+    ("FFC2FF89", "XKCD_LightYellowishGreen"),
+    ("FF7BC8F6", "XKCD_Lightblue"),
+    ("FF75FD63", "XKCD_LighterGreen"),
+    ("FFA55AF4", "XKCD_LighterPurple"),
+    ("FF76FF7B", "XKCD_Lightgreen"),
+    ("FF3D7AFD", "XKCD_LightishBlue"),
+    ("FF61E160", "XKCD_LightishGreen"),
+    ("FFA552E6", "XKCD_LightishPurple"),
+    ("FFFE2F4A", "XKCD_LightishRed"),
+    ("FFCEA2FD", "XKCD_Lilac"),
+    ("FFC48EFD", "XKCD_Liliac"),
+    ("FFAAFF32", "XKCD_Lime"),
+    ("FF89FE05", "XKCD_LimeGreen"),
+    ("FFD0FE1D", "XKCD_LimeYellow"),
+    ("FFD5174E", "XKCD_Lipstick"),
+    ("FFC0022F", "XKCD_LipstickRed"),
+    ("FFEFB435", "XKCD_MacaroniAndCheese"),
+    ("FFC20078", "XKCD_Magenta"),
+    ("FF4A0100", "XKCD_Mahogany"),
+    ("FFF4D054", "XKCD_Maize"),
+    ("FFFFA62B", "XKCD_Mango"),
+    ("FFFFFA86", "XKCD_Manilla"),
+    ("FFFCC006", "XKCD_Marigold"),
+    ("FF042E60", "XKCD_Marine"),
+    ("FF01386A", "XKCD_MarineBlue"),
+    ("FF650021", "XKCD_Maroon"),
+    ("FFAE7181", "XKCD_Mauve"),
+    ("FF2C6FBB", "XKCD_MediumBlue"),
+    ("FF7F5112", "XKCD_MediumBrown"),
+    ("FF39AD48", "XKCD_MediumGreen"),
+    ("FF7D7F7C", "XKCD_MediumGrey"),
+    ("FFF36196", "XKCD_MediumPink"),
+    ("FF9E43A2", "XKCD_MediumPurple"),
+    ("FFFF7855", "XKCD_Melon"),
+    ("FF730039", "XKCD_Merlot"),
+    ("FF4F738E", "XKCD_MetallicBlue"),
+    ("FF276AB3", "XKCD_MidBlue"),
+    ("FF50A747", "XKCD_MidGreen"),
+    ("FF03012D", "XKCD_Midnight"),
+    ("FF020035", "XKCD_MidnightBlue"),
+    ("FF280137", "XKCD_MidnightPurple"),
+    ("FF667C3E", "XKCD_MilitaryGreen"),
+    ("FF7F4E1E", "XKCD_MilkChocolate"),
+    ("FF9FFEB0", "XKCD_Mint"),
+    ("FF8FFF9F", "XKCD_MintGreen"),
+    ("FF0BF77D", "XKCD_MintyGreen"),
+    ("FF9D7651", "XKCD_Mocha"),
+    ("FF769958", "XKCD_Moss"),
+    ("FF658B38", "XKCD_MossGreen"),
+    ("FF638B27", "XKCD_MossyGreen"),
+    ("FF735C12", "XKCD_Mud"),
+    ("FF60460F", "XKCD_MudBrown"),
+    ("FF606602", "XKCD_MudGreen"),
+    ("FF886806", "XKCD_MuddyBrown"),
+    ("FF657432", "XKCD_MuddyGreen"),
+    ("FFBFAC05", "XKCD_MuddyYellow"),
+    ("FF920A4E", "XKCD_Mulberry"),
+    ("FF6C7A0E", "XKCD_MurkyGreen"),
+    ("FFBA9E88", "XKCD_Mushroom"),
+    ("FFCEB301", "XKCD_Mustard"),
+    ("FFAC7E04", "XKCD_MustardBrown"),
+    ("FFA8B504", "XKCD_MustardGreen"),
+    ("FFD2BD0A", "XKCD_MustardYellow"),
+    ("FF3B719F", "XKCD_MutedBlue"),
+    ("FF5FA052", "XKCD_MutedGreen"),
+    ("FFD1768F", "XKCD_MutedPink"),
+    ("FF805B87", "XKCD_MutedPurple"),
+    ("FF70B23F", "XKCD_NastyGreen"),
+    ("FF01153E", "XKCD_Navy"),
+    ("FF001146", "XKCD_NavyBlue"),
+    ("FF35530A", "XKCD_NavyGreen"),
+    ("FF04D9FF", "XKCD_NeonBlue"),
+    ("FF0CFF0C", "XKCD_NeonGreen"),
+    ("FFFE019A", "XKCD_NeonPink"),
+    ("FFBC13FE", "XKCD_NeonPurple"),
+    ("FFFF073A", "XKCD_NeonRed"),
+    ("FFCFFF04", "XKCD_NeonYellow"),
+    ("FF107AB0", "XKCD_NiceBlue"),
+    ("FF040348", "XKCD_NightBlue"),
+    ("FF017B92", "XKCD_Ocean"),
+    ("FF03719C", "XKCD_OceanBlue"),
+    ("FF3D9973", "XKCD_OceanGreen"),
+    ("FFBF9B0C", "XKCD_Ocher"),
+    ("FFBF9005", "XKCD_Ochre"),
+    ("FFC69C04", "XKCD_Ocre"),
+    ("FF5684AE", "XKCD_OffBlue"),
+    ("FF6BA353", "XKCD_OffGreen"),
+    ("FFFFFFE4", "XKCD_OffWhite"),
+    ("FFF1F33F", "XKCD_OffYellow"),
+    ("FFC77986", "XKCD_OldPink"),
+    ("FFC87F89", "XKCD_OldRose"),
+    ("FF6E750E", "XKCD_Olive"),
+    ("FF645403", "XKCD_OliveBrown"),
+    ("FF6F7632", "XKCD_OliveDrab"),
+    ("FF677A04", "XKCD_OliveGreen"),
+    ("FFC2B709", "XKCD_OliveYellow"),
+    ("FFF97306", "XKCD_Orange"),
+    ("FFBE6400", "XKCD_OrangeBrown"),
+    ("FFFF6F52", "XKCD_OrangePink"),
+    ("FFFD411E", "XKCD_OrangeRed"),
+    ("FFFFAD01", "XKCD_OrangeYellow"),
+    ("FFFD8D49", "XKCD_Orangeish"),
+    ("FFFE420F", "XKCD_Orangered"),
+    ("FFB16002", "XKCD_OrangeyBrown"),
+    ("FFFA4224", "XKCD_OrangeyRed"),
+    ("FFFDB915", "XKCD_OrangeyYellow"),
+    ("FFFC824A", "XKCD_Orangish"),
+    ("FFB25F03", "XKCD_OrangishBrown"),
+    ("FFF43605", "XKCD_OrangishRed"),
+    ("FFC875C4", "XKCD_Orchid"),
+    ("FFFFF9D0", "XKCD_Pale"),
+    ("FFB8FFEB", "XKCD_PaleAqua"),
+    ("FFD0FEFE", "XKCD_PaleBlue"),
+    ("FFB1916E", "XKCD_PaleBrown"),
+    ("FFB7FFFA", "XKCD_PaleCyan"),
+    ("FFFDDE6C", "XKCD_PaleGold"),
+    ("FFC7FDB5", "XKCD_PaleGreen"),
+    ("FFFDFDFE", "XKCD_PaleGrey"),
+    ("FFEECFFE", "XKCD_PaleLavender"),
+    ("FFB1FC99", "XKCD_PaleLightGreen"),
+    ("FFE4CBFF", "XKCD_PaleLilac"),
+    ("FFBEFD73", "XKCD_PaleLime"),
+    ("FFB1FF65", "XKCD_PaleLimeGreen"),
+    ("FFD767AD", "XKCD_PaleMagenta"),
+    ("FFFED0FC", "XKCD_PaleMauve"),
+    ("FFB9CC81", "XKCD_PaleOlive"),
+    ("FFB1D27B", "XKCD_PaleOliveGreen"),
+    ("FFFFA756", "XKCD_PaleOrange"),
+    ("FFFFE5AD", "XKCD_PalePeach"),
+    ("FFFFCFDC", "XKCD_PalePink"),
+    ("FFB790D4", "XKCD_PalePurple"),
+    ("FFD9544D", "XKCD_PaleRed"),
+    ("FFFDC1C5", "XKCD_PaleRose"),
+    ("FFFFB19A", "XKCD_PaleSalmon"),
+    ("FFBDF6FE", "XKCD_PaleSkyBlue"),
+    ("FF82CBB2", "XKCD_PaleTeal"),
+    ("FFA5FBD5", "XKCD_PaleTurquoise"),
+    ("FFCEAEFA", "XKCD_PaleViolet"),
+    ("FFFFFF84", "XKCD_PaleYellow"),
+    ("FFFEFCAF", "XKCD_Parchment"),
+    ("FFA2BFFE", "XKCD_PastelBlue"),
+    ("FFB0FF9D", "XKCD_PastelGreen"),
+    ("FFFF964F", "XKCD_PastelOrange"),
+    ("FFFFBACD", "XKCD_PastelPink"),
+    ("FFCAA0FF", "XKCD_PastelPurple"),
+    ("FFDB5856", "XKCD_PastelRed"),
+    ("FFFFFE71", "XKCD_PastelYellow"),
+    ("FFA4BF20", "XKCD_Pea"),
+    ("FF8EAB12", "XKCD_PeaGreen"),
+    ("FF929901", "XKCD_PeaSoup"),
+    ("FF94A617", "XKCD_PeaSoupGreen"),
+    ("FFFFB07C", "XKCD_Peach"),
+    ("FFFF9A8A", "XKCD_PeachyPink"),
+    ("FF016795", "XKCD_PeacockBlue"),
+    ("FFCBF85F", "XKCD_Pear"),
+    ("FF8E82FE", "XKCD_Periwinkle"),
+    ("FF8F99FB", "XKCD_PeriwinkleBlue"),
+    ("FF8F8CE7", "XKCD_Perrywinkle"),
+    ("FF005F6A", "XKCD_Petrol"),
+    ("FFE78EA5", "XKCD_PigPink"),
+    ("FF2B5D34", "XKCD_Pine"),
+    ("FF0A481E", "XKCD_PineGreen"),
+    ("FFFF81C0", "XKCD_Pink"),
+    ("FFDB4BDA", "XKCD_PinkPurple"),
+    ("FFF5054F", "XKCD_PinkRed"),
+    ("FFEF1DE7", "XKCD_PinkOrPurple"),
+    ("FFD46A7E", "XKCD_Pinkish"),
+    ("FFB17261", "XKCD_PinkishBrown"),
+    ("FFC8ACA9", "XKCD_PinkishGrey"),
+    ("FFFF724C", "XKCD_PinkishOrange"),
+    ("FFD648D7", "XKCD_PinkishPurple"),
+    ("FFF10C45", "XKCD_PinkishRed"),
+    ("FFD99B82", "XKCD_PinkishTan"),
+    ("FFFC86AA", "XKCD_Pinky"),
+    ("FFC94CBE", "XKCD_PinkyPurple"),
+    ("FFFC2647", "XKCD_PinkyRed"),
+    ("FFDDD618", "XKCD_PissYellow"),
+    ("FFC0FA8B", "XKCD_Pistachio"),
+    ("FF580F41", "XKCD_Plum"),
+    ("FF4E0550", "XKCD_PlumPurple"),
+    ("FF40FD14", "XKCD_PoisonGreen"),
+    ("FF8F7303", "XKCD_Poo"),
+    ("FF885F01", "XKCD_PooBrown"),
+    ("FF7F5E00", "XKCD_Poop"),
+    ("FF7A5901", "XKCD_PoopBrown"),
+    ("FF6F7C00", "XKCD_PoopGreen"),
+    ("FFB1D1FC", "XKCD_PowderBlue"),
+    ("FFFFB2D0", "XKCD_PowderPink"),
+    ("FF0804F9", "XKCD_PrimaryBlue"),
+    ("FF004577", "XKCD_PrussianBlue"),
+    ("FFA57E52", "XKCD_Puce"),
+    ("FFA5A502", "XKCD_Puke"),
+    ("FF947706", "XKCD_PukeBrown"),
+    ("FF9AAE07", "XKCD_PukeGreen"),
+    ("FFC2BE0E", "XKCD_PukeYellow"),
+    ("FFE17701", "XKCD_Pumpkin"),
+    ("FFFB7D07", "XKCD_PumpkinOrange"),
+    ("FF0203E2", "XKCD_PureBlue"),
+    ("FF7E1E9C", "XKCD_Purple"),
+    ("FF632DE9", "XKCD_PurpleBlue"),
+    ("FF673A3F", "XKCD_PurpleBrown"),
+    ("FF866F85", "XKCD_PurpleGrey"),
+    ("FFE03FD8", "XKCD_PurplePink"),
+    ("FF990147", "XKCD_PurpleRed"),
+    ("FF5D21D0", "XKCD_PurpleOrBlue"),
+    ("FFD725DE", "XKCD_PurpleOrPink"),
+    ("FF98568D", "XKCD_Purpleish"),
+    ("FF6140EF", "XKCD_PurpleishBlue"),
+    ("FFDF4EC8", "XKCD_PurpleishPink"),
+    ("FF8756E4", "XKCD_Purpley"),
+    ("FF5F34E7", "XKCD_PurpleyBlue"),
+    ("FF947E94", "XKCD_PurpleyGrey"),
+    ("FFC83CB9", "XKCD_PurpleyPink"),
+    ("FF94568C", "XKCD_Purplish"),
+    ("FF601EF9", "XKCD_PurplishBlue"),
+    ("FF6B4247", "XKCD_PurplishBrown"),
+    ("FF7A687F", "XKCD_PurplishGrey"),
+    ("FFCE5DAE", "XKCD_PurplishPink"),
+    ("FFB0054B", "XKCD_PurplishRed"),
+    ("FF983FB2", "XKCD_Purply"),
+    ("FF661AEE", "XKCD_PurplyBlue"),
+    ("FFF075E6", "XKCD_PurplyPink"),
+    ("FFBEAE8A", "XKCD_Putty"),
+    ("FF014600", "XKCD_RacingGreen"),
+    ("FF2CFA1F", "XKCD_RadioactiveGreen"),
+    ("FFB00149", "XKCD_Raspberry"),
+    ("FF9A6200", "XKCD_RawSienna"),
+    ("FFA75E09", "XKCD_RawUmber"),
+    ("FFD4FFFF", "XKCD_ReallyLightBlue"),
+    ("FFE50000", "XKCD_Red"),
+    ("FF8B2E16", "XKCD_RedBrown"),
+    ("FFFD3C06", "XKCD_RedOrange"),
+    ("FFFA2A55", "XKCD_RedPink"),
+    ("FF820747", "XKCD_RedPurple"),
+    ("FF9E0168", "XKCD_RedViolet"),
+    ("FF8C0034", "XKCD_RedWine"),
+    ("FFC44240", "XKCD_Reddish"),
+    ("FF7F2B0A", "XKCD_ReddishBrown"),
+    ("FF997570", "XKCD_ReddishGrey"),
+    ("FFF8481C", "XKCD_ReddishOrange"),
+    ("FFFE2C54", "XKCD_ReddishPink"),
+    ("FF910951", "XKCD_ReddishPurple"),
+    ("FF6E1005", "XKCD_ReddyBrown"),
+    ("FF021BF9", "XKCD_RichBlue"),
+    ("FF720058", "XKCD_RichPurple"),
+    ("FF8AF1FE", "XKCD_RobinEggBlue"),
+    ("FF6DEDFD", "XKCD_RobinsEgg"),
+    ("FF98EFF9", "XKCD_RobinsEggBlue"),
+    ("FFFE86A4", "XKCD_Rosa"),
+    ("FFCF6275", "XKCD_Rose"),
+    ("FFF7879A", "XKCD_RosePink"),
+    ("FFBE013C", "XKCD_RoseRed"),
+    ("FFF6688E", "XKCD_RosyPink"),
+    ("FFAB1239", "XKCD_Rouge"),
+    ("FF0C1793", "XKCD_Royal"),
+    ("FF0504AA", "XKCD_RoyalBlue"),
+    ("FF4B006E", "XKCD_RoyalPurple"),
+    ("FFCA0147", "XKCD_Ruby"),
+    ("FFA13905", "XKCD_Russet"),
+    ("FFA83C09", "XKCD_Rust"),
+    ("FF8B3103", "XKCD_RustBrown"),
+    ("FFC45508", "XKCD_RustOrange"),
+    ("FFAA2704", "XKCD_RustRed"),
+    ("FFCD5909", "XKCD_RustyOrange"),
+    ("FFAF2F0D", "XKCD_RustyRed"),
+    ("FFFEB209", "XKCD_Saffron"),
+    ("FF87AE73", "XKCD_Sage"),
+    ("FF88B378", "XKCD_SageGreen"),
+    ("FFFF796C", "XKCD_Salmon"),
+    ("FFFE7B7C", "XKCD_SalmonPink"),
+    ("FFE2CA76", "XKCD_Sand"),
+    ("FFCBA560", "XKCD_SandBrown"),
+    ("FFFCE166", "XKCD_SandYellow"),
+    ("FFC9AE74", "XKCD_Sandstone"),
+    ("FFF1DA7A", "XKCD_Sandy"),
+    ("FFC4A661", "XKCD_SandyBrown"),
+    ("FFFDEE73", "XKCD_SandyYellow"),
+    ("FF5C8B15", "XKCD_SapGreen"),
+    ("FF2138AB", "XKCD_Sapphire"),
+    ("FFBE0119", "XKCD_Scarlet"),
+    ("FF3C9992", "XKCD_Sea"),
+    ("FF047495", "XKCD_SeaBlue"),
+    ("FF53FCA1", "XKCD_SeaGreen"),
+    ("FF80F9AD", "XKCD_Seafoam"),
+    ("FF78D1B6", "XKCD_SeafoamBlue"),
+    ("FF7AF9AB", "XKCD_SeafoamGreen"),
+    ("FF18D17B", "XKCD_Seaweed"),
+    ("FF35AD6B", "XKCD_SeaweedGreen"),
+    ("FF985E2B", "XKCD_Sepia"),
+    ("FF01B44C", "XKCD_Shamrock"),
+    ("FF02C14D", "XKCD_ShamrockGreen"),
+    ("FF7F5F00", "XKCD_Shit"),
+    ("FF7B5804", "XKCD_ShitBrown"),
+    ("FF758000", "XKCD_ShitGreen"),
+    ("FFFE02A2", "XKCD_ShockingPink"),
+    ("FF9DB92C", "XKCD_SickGreen"),
+    ("FF94B21C", "XKCD_SicklyGreen"),
+    ("FFD0E429", "XKCD_SicklyYellow"),
+    ("FFA9561E", "XKCD_Sienna"),
+    ("FFC5C9C7", "XKCD_Silver"),
+    ("FF82CAFC", "XKCD_Sky"),
+    ("FF75BBFD", "XKCD_SkyBlue"),
+    ("FF516572", "XKCD_Slate"),
+    ("FF5B7C99", "XKCD_SlateBlue"),
+    ("FF658D6D", "XKCD_SlateGreen"),
+    ("FF59656D", "XKCD_SlateGrey"),
+    ("FF99CC04", "XKCD_SlimeGreen"),
+    ("FFACBB0D", "XKCD_Snot"),
+    ("FF9DC100", "XKCD_SnotGreen"),
+    ("FF6488EA", "XKCD_SoftBlue"),
+    ("FF6FC276", "XKCD_SoftGreen"),
+    ("FFFDB0C0", "XKCD_SoftPink"),
+    ("FFA66FB5", "XKCD_SoftPurple"),
+    ("FF1EF876", "XKCD_Spearmint"),
+    ("FFA9F971", "XKCD_SpringGreen"),
+    ("FF0A5F38", "XKCD_Spruce"),
+    ("FFF2AB15", "XKCD_Squash"),
+    ("FF738595", "XKCD_Steel"),
+    ("FF5A7D9A", "XKCD_SteelBlue"),
+    ("FF6F828A", "XKCD_SteelGrey"),
+    ("FFADA587", "XKCD_Stone"),
+    ("FF507B9C", "XKCD_StormyBlue"),
+    ("FFFCF679", "XKCD_Straw"),
+    ("FFFB2943", "XKCD_Strawberry"),
+    ("FF0C06F7", "XKCD_StrongBlue"),
+    ("FFFF0789", "XKCD_StrongPink"),
+    ("FFFFDF22", "XKCD_SunYellow"),
+    ("FFFFC512", "XKCD_Sunflower"),
+    ("FFFFDA03", "XKCD_SunflowerYellow"),
+    ("FFFFF917", "XKCD_SunnyYellow"),
+    ("FFFFFD37", "XKCD_SunshineYellow"),
+    ("FF698339", "XKCD_Swamp"),
+    ("FF748500", "XKCD_SwampGreen"),
+    ("FFD1B26F", "XKCD_Tan"),
+    ("FFAB7E4C", "XKCD_TanBrown"),
+    ("FFA9BE70", "XKCD_TanGreen"),
+    ("FFFF9408", "XKCD_Tangerine"),
+    ("FFB9A281", "XKCD_Taupe"),
+    ("FF65AB7C", "XKCD_Tea"),
+    ("FFBDF8A3", "XKCD_TeaGreen"),
+    ("FF029386", "XKCD_Teal"),
+    ("FF01889F", "XKCD_TealBlue"),
+    ("FF25A36F", "XKCD_TealGreen"),
+    ("FF24BCA8", "XKCD_Tealish"),
+    ("FF0CDC73", "XKCD_TealishGreen"),
+    ("FFC9643B", "XKCD_TerraCotta"),
+    ("FFCB6843", "XKCD_Terracota"),
+    ("FFCA6641", "XKCD_Terracotta"),
+    ("FF7BF2DA", "XKCD_TiffanyBlue"),
+    ("FFEF4026", "XKCD_Tomato"),
+    ("FFEC2D01", "XKCD_TomatoRed"),
+    ("FF13BBAF", "XKCD_Topaz"),
+    ("FFC7AC7D", "XKCD_Toupe"),
+    ("FF61DE2A", "XKCD_ToxicGreen"),
+    ("FF2A7E19", "XKCD_TreeGreen"),
+    ("FF010FCC", "XKCD_TrueBlue"),
+    ("FF089404", "XKCD_TrueGreen"),
+    ("FF06C2AC", "XKCD_Turquoise"),
+    ("FF06B1C4", "XKCD_TurquoiseBlue"),
+    ("FF04F489", "XKCD_TurquoiseGreen"),
+    ("FF75B84F", "XKCD_TurtleGreen"),
+    ("FF4E518B", "XKCD_Twilight"),
+    ("FF0A437A", "XKCD_TwilightBlue"),
+    ("FF31668A", "XKCD_UglyBlue"),
+    ("FF7D7103", "XKCD_UglyBrown"),
+    ("FF7A9703", "XKCD_UglyGreen"),
+    ("FFCD7584", "XKCD_UglyPink"),
+    ("FFA442A0", "XKCD_UglyPurple"),
+    ("FFD0C101", "XKCD_UglyYellow"),
+    ("FF2000B1", "XKCD_Ultramarine"),
+    ("FF1805DB", "XKCD_UltramarineBlue"),
+    ("FFB26400", "XKCD_Umber"),
+    ("FF750851", "XKCD_Velvet"),
+    ("FFF4320C", "XKCD_Vermillion"),
+    ("FF000133", "XKCD_VeryDarkBlue"),
+    ("FF1D0200", "XKCD_VeryDarkBrown"),
+    ("FF062E03", "XKCD_VeryDarkGreen"),
+    ("FF2A0134", "XKCD_VeryDarkPurple"),
+    ("FFD5FFFF", "XKCD_VeryLightBlue"),
+    ("FFD3B683", "XKCD_VeryLightBrown"),
+    ("FFD1FFBD", "XKCD_VeryLightGreen"),
+    ("FFFFF4F2", "XKCD_VeryLightPink"),
+    ("FFF6CEFC", "XKCD_VeryLightPurple"),
+    ("FFD6FFFE", "XKCD_VeryPaleBlue"),
+    ("FFCFFDBC", "XKCD_VeryPaleGreen"),
+    ("FF0339F8", "XKCD_VibrantBlue"),
+    ("FF0ADD08", "XKCD_VibrantGreen"),
+    ("FFAD03DE", "XKCD_VibrantPurple"),
+    ("FF9A0EEA", "XKCD_Violet"),
+    ("FF510AC9", "XKCD_VioletBlue"),
+    ("FFFB5FFC", "XKCD_VioletPink"),
+    ("FFA50055", "XKCD_VioletRed"),
+    ("FF1E9167", "XKCD_Viridian"),
+    ("FF152EFF", "XKCD_VividBlue"),
+    ("FF2FEF10", "XKCD_VividGreen"),
+    ("FF9900FA", "XKCD_VividPurple"),
+    ("FFA2A415", "XKCD_Vomit"),
+    ("FF89A203", "XKCD_VomitGreen"),
+    ("FFC7C10C", "XKCD_VomitYellow"),
+    ("FF4B57DB", "XKCD_WarmBlue"),
+    ("FF964E02", "XKCD_WarmBrown"),
+    ("FF978A84", "XKCD_WarmGrey"),
+    ("FFFB5581", "XKCD_WarmPink"),
+    ("FF952E8F", "XKCD_WarmPurple"),
+    ("FFBCF5A6", "XKCD_WashedOutGreen"),
+    ("FF0E87CC", "XKCD_WaterBlue"),
+    ("FFFD4659", "XKCD_Watermelon"),
+    ("FF3AE57F", "XKCD_WeirdGreen"),
+    ("FFFBDD7E", "XKCD_Wheat"),
+    ("FF3778BF", "XKCD_WindowsBlue"),
+    ("FF80013F", "XKCD_Wine"),
+    ("FF7B0323", "XKCD_WineRed"),
+    ("FF20F986", "XKCD_Wintergreen"),
+    ("FFA87DC2", "XKCD_Wisteria"),
+    ("FFFFFF14", "XKCD_Yellow"),
+    ("FFB79400", "XKCD_YellowBrown"),
+    ("FFC0FB2D", "XKCD_YellowGreen"),
+    ("FFCB9D06", "XKCD_YellowOchre"),
+    ("FFFCB001", "XKCD_YellowOrange"),
+    ("FFFFE36E", "XKCD_YellowTan"),
+    ("FFC8FD3D", "XKCD_YellowOrGreen"),
+    ("FFBBF90F", "XKCD_Yellowgreen"),
+    ("FFFAEE66", "XKCD_Yellowish"),
+    ("FF9B7A01", "XKCD_YellowishBrown"),
+    ("FFB0DD16", "XKCD_YellowishGreen"),
+    ("FFFFAB0F", "XKCD_YellowishOrange"),
+    ("FFFCFC81", "XKCD_YellowishTan"),
+    ("FFAE8B0C", "XKCD_YellowyBrown"),
+    ("FFBFF128", "XKCD_YellowyGreen"),
+    ("FFEFDECD", "Crayon_Almond"),
+    ("FFCD9575", "Crayon_AntiqueBrass"),
+    ("FFFDD9B5", "Crayon_Apricot"),
+    ("FF78DBE2", "Crayon_Aquamarine"),
+    ("FF87A96B", "Crayon_Asparagus"),
+    ("FFFFA474", "Crayon_AtomicTangerine"),
+    ("FFFAE7B5", "Crayon_BananaMania"),
+    ("FF9F8170", "Crayon_Beaver"),
+    ("FFFD7C6E", "Crayon_Bittersweet"),
+    ("FF000000", "Crayon_Black"),
+    ("FF1F75FE", "Crayon_Blue"),
+    ("FFA2A2D0", "Crayon_BlueBell"),
+    ("FF0D98BA", "Crayon_BlueGreen"),
+    ("FF7366BD", "Crayon_BlueViolet"),
+    ("FFDE5D83", "Crayon_Blush"),
+    ("FFCB4154", "Crayon_BrickRed"),
+    ("FFB4674D", "Crayon_Brown"),
+    ("FFFF7F49", "Crayon_BurntOrange"),
+    ("FFEA7E5D", "Crayon_BurntSienna"),
+    ("FFB0B7C6", "Crayon_CadetBlue"),
+    ("FFFFFF99", "Crayon_Canary"),
+    ("FF00CC99", "Crayon_CaribbeanGreen"),
+    ("FFFFAACC", "Crayon_CarnationPink"),
+    ("FFDD4492", "Crayon_Cerise"),
+    ("FF1DACD6", "Crayon_Cerulean"),
+    ("FFBC5D58", "Crayon_Chestnut"),
+    ("FFDD9475", "Crayon_Copper"),
+    ("FF9ACEEB", "Crayon_Cornflower"),
+    ("FFFFBCD9", "Crayon_CottonCandy"),
+    ("FFFDDB6D", "Crayon_Dandelion"),
+    ("FF2B6CC4", "Crayon_Denim"),
+    ("FFEFCDB8", "Crayon_DesertSand"),
+    ("FF6E5160", "Crayon_Eggplant"),
+    ("FFCEFF1D", "Crayon_ElectricLime"),
+    ("FF71BC78", "Crayon_Fern"),
+    ("FF6DAE81", "Crayon_ForestGreen"),
+    ("FFC364C5", "Crayon_Fuchsia"),
+    ("FFCC6666", "Crayon_FuzzyWuzzy"),
+    ("FFE7C697", "Crayon_Gold"),
+    ("FFFCD975", "Crayon_Goldenrod"),
+    ("FFA8E4A0", "Crayon_GrannySmithApple"),
+    ("FF95918C", "Crayon_Gray"),
+    ("FF1CAC78", "Crayon_Green"),
+    ("FFF0E891", "Crayon_GreenYellow"),
+    ("FFFF1DCE", "Crayon_HotMagenta"),
+    ("FFB2EC5D", "Crayon_Inchworm"),
+    ("FF5D76CB", "Crayon_Indigo"),
+    ("FFCA3767", "Crayon_JazzberryJam"),
+    ("FF3BB08F", "Crayon_JungleGreen"),
+    ("FFFEFE22", "Crayon_LaserLemon"),
+    ("FFFCB4D5", "Crayon_Lavender"),
+    ("FFFFBD88", "Crayon_MacaroniandCheese"),
+    ("FFF664AF", "Crayon_Magenta"),
+    ("FFCD4A4C", "Crayon_Mahogany"),
+    ("FF979AAA", "Crayon_Manatee"),
+    ("FFFF8243", "Crayon_MangoTango"),
+    ("FFC8385A", "Crayon_Maroon"),
+    ("FFEF98AA", "Crayon_Mauvelous"),
+    ("FFFDBCB4", "Crayon_Melon"),
+    ("FF1A4876", "Crayon_MidnightBlue"),
+    ("FF30BA8F", "Crayon_MountainMeadow"),
+    ("FF1974D2", "Crayon_NavyBlue"),
+    ("FFFFA343", "Crayon_NeonCarrot"),
+    ("FFBAB86C", "Crayon_OliveGreen"),
+    ("FFFF7538", "Crayon_Orange"),
+    ("FFE6A8D7", "Crayon_Orchid"),
+    ("FF414A4C", "Crayon_OuterSpace"),
+    ("FFFF6E4A", "Crayon_OutrageousOrange"),
+    ("FF1CA9C9", "Crayon_PacificBlue"),
+    ("FFFFCFAB", "Crayon_Peach"),
+    ("FFC5D0E6", "Crayon_Periwinkle"),
+    ("FFFDDDE6", "Crayon_PiggyPink"),
+    ("FF158078", "Crayon_PineGreen"),
+    ("FFFC74FD", "Crayon_PinkFlamingo"),
+    ("FFF78FA7", "Crayon_PinkSherbert"),
+    ("FF8E4585", "Crayon_Plum"),
+    ("FF7442C8", "Crayon_PurpleHeart"),
+    ("FF9D81BA", "Crayon_PurpleMountainsMajesty"),
+    ("FFFE4EDA", "Crayon_PurplePizzazz"),
+    ("FFFF496C", "Crayon_RadicalRed"),
+    ("FFD68A59", "Crayon_RawSienna"),
+    ("FFFF48D0", "Crayon_RazzleDazzleRose"),
+    ("FFE3256B", "Crayon_Razzmatazz"),
+    ("FFEE204D", "Crayon_Red"),
+    ("FFFF5349", "Crayon_RedOrange"),
+    ("FFC0448F", "Crayon_RedViolet"),
+    ("FF1FCECB", "Crayon_RobinsEggBlue"),
+    ("FF7851A9", "Crayon_RoyalPurple"),
+    ("FFFF9BAA", "Crayon_Salmon"),
+    ("FFFC2847", "Crayon_Scarlet"),
+    ("FF76FF7A", "Crayon_ScreamingGreen"),
+    ("FF93DFB8", "Crayon_SeaGreen"),
+    ("FFA5694F", "Crayon_Sepia"),
+    ("FF8A795D", "Crayon_Shadow"),
+    ("FF45CEA2", "Crayon_Shamrock"),
+    ("FFFB7EFD", "Crayon_ShockingPink"),
+    ("FFCDC5C2", "Crayon_Silver"),
+    ("FF80DAEB", "Crayon_SkyBlue"),
+    ("FFECEABE", "Crayon_SpringGreen"),
+    ("FFFFCF48", "Crayon_Sunglow"),
+    ("FFFD5E53", "Crayon_SunsetOrange"),
+    ("FFFAA76C", "Crayon_Tan"),
+    ("FFFC89AC", "Crayon_TickleMePink"),
+    ("FFDBD7D2", "Crayon_Timberwolf"),
+    ("FF17806D", "Crayon_TropicalRainForest"),
+    ("FFDEAA88", "Crayon_Tumbleweed"),
+    ("FF77DDE7", "Crayon_TurquoiseBlue"),
+    ("FFFFFF66", "Crayon_UnmellowYellow"),
+    ("FF926EAE", "Crayon_VioletPurple"),
+    ("FFF75394", "Crayon_VioletRed"),
+    ("FFFFA089", "Crayon_VividTangerine"),
+    ("FF8F509D", "Crayon_VividViolet"),
+    ("FFFFFFFF", "Crayon_White"),
+    ("FFA2ADD0", "Crayon_WildBlueYonder"),
+    ("FFFF43A4", "Crayon_WildStrawberry"),
+    ("FFFC6C85", "Crayon_WildWatermelon"),
+    ("FFCDA4DE", "Crayon_Wisteria"),
+    ("FFFCE883", "Crayon_Yellow"),
+    ("FFC5E384", "Crayon_YellowGreen"),
+    ("FFFFAE42", "Crayon_YellowOrange"),
+    ("FF704214", "Sepia"),
+});
+
+foreach ((string hex, string name) in custom_colors)
+{
+    var duplicates = colors.Where(t => t.hex.Equals(hex, StringComparison.InvariantCultureIgnoreCase)).Select(t => t.name).ToArray();
+
+    if (duplicates.Length == 0)
+        colors.Add((hex, name));
+    else
+        // && !t.Item2.Equals(name, StringComparison.InvariantCultureIgnoreCase)
+        dup_colors.Add((hex, name, duplicates));
+}
+
+var members = new string[]
+{
+    @"public readonly double Average => ($R + $G + $B) / 3;",
+    @"public readonly double CIEGray => (.299 * $R) + (.587 * $G) + (.114 * $B);",
+    @"public readonly (double L, double a, double b) CIELAB94 => ToCIELAB94();",
+    @"public (double Hue, double Saturation, double Luminosity) HSL
+    {
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        readonly get => ToHSL();
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        set
+        {
+            $type color = FromHSL(value.Hue, value.Saturation, value.Luminosity);
+            ($R, $G, $B) = (color.$R, color.$G, color.$B);
+        }
+    }",
+    @"public (double Hue, double Saturation, double Value) HSV
+    {
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        readonly get => ToHSV();
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        set
+        {
+            $type color = FromHSV(value.Hue, value.Saturation, value.Value);
+            ($R, $G, $B) = (color.$R, color.$G, color.$B);
+        }
+    }",
+    @"public (double Hue, double Chroma, double Luma) HCL
+    {
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        readonly get => ToHCL();
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        set
+        {
+            $type color = FromHCL(value.Hue, value.Chroma, value.Luma);
+            ($R, $G, $B) = (color.$R, color.$G, color.$B);
+        }
+    }",
+    @"public (double Hue, double Chroma, double Y) HCY
+    {
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        readonly get => ToHCY();
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        set
+        {
+            $type color = FromHCY(value.Hue, value.Chroma, value.Y);
+            ($R, $G, $B) = (color.$R, color.$G, color.$B);
+        }
+    }",
+    @"public (double C, double M, double Y, double K) CMYK
+    {
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        readonly get => ToCMYK();
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        set
+        {
+            $type color = FromCMYK(value.C, value.M, value.Y, value.K);
+            ($R, $G, $B) = (color.$R, color.$G, color.$B);
+        }
+    }",
+    @"public (double x, double y) NormalizedChromaticity => ToNormalizedChromaticity();",
+    @"public (double X, double Y, double Z) XYZ
+    {
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        readonly get => ToXYZ();
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        set
+        {
+            $type color = FromXYZ(value.X, value.Y, value.Z);
+            ($R, $G, $B) = (color.$R, color.$G, color.$B);
+        }
+    }",
+
+    @"public (double Y, double U, double V) YUV
+    {
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        readonly get => ToYUV();
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        set
+        {
+            $type color = FromYUV(value.Y, value.U, value.V);
+            ($R, $G, $B) = (color.$R, color.$G, color.$B);
+        }
+    }",
+    @"public (double Y, double I, double Q) YIQ
+    {
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        readonly get => ToYIQ();
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        set
+        {
+            $type color = FromYIQ(value.Y, value.I, value.Q);
+            ($R, $G, $B) = (color.$R, color.$G, color.$B);
+        }
+    }",
+    @"public double BlackbodyTemperature
+    {
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        readonly get => ToBlackbodyTemperature();
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        set
+        {
+            $type color = FromBlackbodyTemperature(value);
+            ($R, $G, $B) = (color.$R, color.$G, color.$B);
+        }
+    }",
+    @"public readonly ($type @this, $type Triadic1, $type Triadic2) Triadic
+    {
+        get
+        {
+            (double h, double s, double l) = ToHSL();
+
+            return (
+                this,
+                FromHSL(h + Math.PI * 2 / 3, s, l, $A),
+                FromHSL(h + Math.PI * 4 / 3, s, l, $A)
+            );
+        }
+    }",
+    @"public readonly $type[] Analogous
+    {
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        get
+        {
+            $type copy = this;
+
+            return Enumerable.Range(-3, 7).Select(i => copy.Rotate(i * Math.PI / 6)).ToArray();
+        }
+    }",
+    @"public readonly $type[] Neutrals
+    {
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        get
+        {
+            $type copy = this;
+
+            return Enumerable.Range(-3, 7).Select(i => copy.Rotate(i * Math.PI / 12)).ToArray();
+        }
+    }",
+    @"public readonly $type Normalized
+    {
+        get
+        {
+            $type copy = this;
+            double max = Math.Max(copy.$R, Math.Max(copy.$G, copy.$B));
+
+            if (max > 0)
+            {
+                copy.$R /= max;
+                copy.$G /= max;
+                copy.$B /= max;
+            }
+
+            return copy;
+        }
+    }",
+    @"public $type(uint argb)
+        : this((int)argb)
+    {
+    }",
+    @"public $type(double r, double g, double b)
+        : this(r, g, b, 1)
+    {
+    }",
+    @"public $type($type color)
+        : this(color, color.$A)
+    {
+    }",
+    @"public $type($type color, double α)
+        : this(color.$R, color.$G, color.$B, α)
+    {
+    }",
+    @"public $type(double gray)
+        : this(gray, 1.0)
+    {
+    }",
+    @"public $type(double gray, double α)
+        : this(gray, gray, gray, α)
+    {
+    }",
+    @"public $type($type* ptr)
+        : this(*ptr)
+    {
+    }",
+    @"public $type($type** ptr)
+        : this(**ptr)
+    {
+    }",
+    @"public $type(double r, double g, double b, double α)
+        : this()
+    {
+        $A = α;
+        $R = r;
+        $G = g;
+        $B = b;
+    }",
+    @"public $type(int argb) : this() => $HEX = argb;",
+    @"",
+    @"public readonly $type Rotate(Scalar φ)
+    {
+        φ += Scalar.Tau;
+        φ %= Scalar.Tau;
+
+        if (φ.IsZero)
+            return this;
+        else if (φ.Is(Scalar.Pi))
+            return Complement;
+
+        (double h, double s, double l) = ToHSL();
+
+        return FromHSL(h + φ, s, l, $A);
+    }",
+    @"public readonly $type[] GetNeutrals(Scalar φ_step, int count)
+    {
+        $type copy = this;
+
+        return Enumerable.Range(-count / 2, count).Select(i => copy.Rotate(i * φ_step)).ToArray();
+    }",
+    @"public readonly $type CorrectGamma(Scalar gamma) => new(
+        Math.Pow($R, gamma.MultiplicativeInverse),
+        Math.Pow($G, gamma.MultiplicativeInverse),
+        Math.Pow($B, gamma.MultiplicativeInverse),
+        $A
+    );",
+    @"public readonly $type FromSRGB() => CorrectGamma(RGBAColor.SRGB_GAMMA_CORRECTION_FACTOR);",
+    @"public readonly $type ToSRGB() => CorrectGamma(RGBAColor.SRGB_GAMMA_CORRECTION_FACTOR.MultiplicativeInverse);",
+    @"public readonly Scalar EucledianRGBDistanceTo($type other) => ((Vector3)this).DistanceTo(other);",
+    @"public readonly Scalar EucledianRGBADistanceTo($type other) => ((Vector4)this).DistanceTo(other);",
+    @"public readonly Scalar CIALAB94DistanceTo(IColor other)
+    {
+        (double L1, double a1, double b1) = ToCIELAB94();
+        (double L2, double a2, double b2) = other.ToCIELAB94();
+
+        double δL = L1 - L2;
+        double δa = a1 - a2;
+        double δb = b1 - b2;
+
+        double c1 = Math.Sqrt(a1 * a1 + b1 *b1);
+        double c2 = Math.Sqrt(a2 * a2 + b2 * b2);
+        double δC = c1 - c2;
+        double δH = δa * δa + δb * δb - δC * δC;
+
+        δH = δH < 0 ? 0 : Math.Sqrt(δH);
+
+        double sc = 1 + .045 * c1;
+        double sh = 1 + .015 * c1;
+
+        double δCkcsc = δC / sc;
+        double δHkhsh = δH / sh;
+
+        double i = δL * δL + δCkcsc * δCkcsc + δHkhsh * δHkhsh;
+
+        return i < 0 ? 0 : Math.Sqrt(i);
+    }",
+    // @"public readonly void Deconstruct(out double r, out double g, out double b, out double α)
+    // {
+    //     r = $R;
+    //     g = $G;
+    //     b = $B;
+    //     α = $A;
+    // }",
+    // @"public readonly void Deconstruct(out double r, out double g, out double b) => Deconstruct(out r, out g, out b, out _);",
+    @"public readonly (double H, double S, double L) ToHSL()
+    {
+        double a = Math.Min(Math.Min($R, $G), $B);
+        double b = Math.Max(Math.Max($R, $G), $B);
+        double δ = b - a;
+        double l = (b + a) / 2;
+        double h, s;
+
+        if (δ < 1e-5)
+            s = h = 0;
+        else
+        {
+            s = δ / (l < .5 ? b + a : 2 - b - a);
+
+            double δr = (b - $R) / δ;
+            double δg = (b - $G) / δ;
+            double δb = (b - $B) / δ;
+
+            h = $R == b ? δb - δg :
+                $G == b ? 2 + δr - δb :
+                          4 + δg - δr;
+
+            h *= 60;
+
+            if (h < 0)
+                h += 360;
+
+            h *= Math.PI / 180;
+        }
+
+        return (h, s, l);
+    }",
+    @"public readonly (double R, double G, double B) ToRGB() => ($R, $G, $B);",
+    @"public readonly (double X, double Y, double Z) ToXYZ() => new Matrix3(
+        .4124, .3576, .1805,
+        .2126, .7152, .0722,
+        .0193, .1192, .9505
+    ) * this;",
+    @"public readonly (double x, double y) ToNormalizedChromaticity()
+    {
+        (double X, double Y, double Z) = ToXYZ();
+        double sum = X + Y + Z;
+
+        return (X / sum, Y / sum);
+    }",
+    @"public readonly (double H, double S, double V) ToHSV()
+    {
+        (double H, double S, double L) = ToHSL();
+        double V = S * Math.Min(L, 1 - L) + L;
+
+        return (H, V > 0 ? 2 - 2 * L / V : 0, V);
+    }",
+    @"public readonly (double H, double C, double Y) ToHCY()
+    {
+        Vector3 HCV = ToHCV();
+        double Y = (Vector3)this * HCYwts;
+        double Z = FromHue(HCV.X) * HCYwts;
+        double C = Y < Z ? Z / (1e-10 + Y) : (1 - Z) / (1e-10 + 1 - Y);
+
+        return (HCV.X, HCV.Y * C, Y);
+    }",
+    @"public readonly (double L, double a, double b) ToCIELAB94()
+    {
+        static double pre(double channel) => channel > .04045 ? Math.Pow((channel + .055) / 1.055, 2.4) : channel / 12.92;
+        static double post(double channel) => channel > .008856 ? Math.Pow(channel, 1 / 3) : (7.787 * channel) + 16 / 116;
+
+        double rf = pre($R);
+        double gf = pre($G);
+        double bf = pre($B);
+        (double x, double y, double z) = ToXYZ();
+
+        x = post(x /  .95047);
+        y = post(y / 1.00000);
+        z = post(z / 1.08883);
+
+        return (
+            L: (116 * y) - 16,
+            a: 500 * (x - y),
+            b: 200 * (y - z)
+        );
+    }",
+    @"public readonly (double C, double M, double Y, double K) ToCMYK()
+    {
+        double K = 1 - Math.Max(Math.Max($R, $G), $B);
+
+        return (
+            (1 - $R - K) / (1 - K),
+            (1 - $G - K) / (1 - K),
+            (1 - $B - K) / (1 - K),
+            K
+        );
+    }",
+    @"public readonly DiscreteSpectrum ToSpectrum()
+    {
+        $type color = this;
+        Dictionary<Wavelength, double> intensities = Wavelength.VisibleWavelengths.ToDictionary(LINQ.id, w => color.GetIntensity(w, 0));
+
+        return new DiscreteSpectrum(intensities);
+    }",
+    @"public readonly double GetIntensity(Wavelength wavelength, double tolerance = 1e-1)
+    {
+        (Wavelength lo, Wavelength hi) = (wavelength.InNanometers + tolerance, wavelength.InNanometers - tolerance);
+        double dist_mid = wavelength.ToColor().CIALAB94DistanceTo(this);
+
+        if (tolerance < Scalar.ComputationalEpsilon)
+            return dist_mid;
+
+        double dist_lo = lo.ToColor().CIALAB94DistanceTo(this);
+        double dist_hi = hi.ToColor().CIALAB94DistanceTo(this);
+
+        return (dist_lo * .2 + dist_mid * .6 + dist_hi * .2).Clamp();
+    }",
+    @"public readonly (double Y, double U, double V) ToYUV() => (
+         .257 * $R + .504 * $G + .098 * $B + 16,
+        -.148 * $R - .291 * $G + .439 * $B + 128,
+         .439 * $R - .368 * $G - .071 * $B + 128
+    );",
+    @"public readonly (double Y, double I, double Q) ToYIQ() => (
+        .299  * $R + .587  * $G + .114  * $B,
+        .5959 * $R - .2746 * $G - .3213 * $B,
+        .2115 * $R - .5227 * $G + .3112 * $B
+    );",
+    @"public readonly (double Y, double Cb, double Cr) ToYCbCr() => (
+         .299   * $R + .587   * $G + .114   * $B,
+        -.16874 * $R - .33126 * $G + .5     * $B + 128,
+         .5     * $R - .41869 * $G - .08131 * $B + 128
+    );",
+    @"public readonly (double H, double C, double V) ToHCV()
+    {
+        Vector4 P = $G < $B ? new($B, $G, -1, 2 / 3.0) : new($G, $B, 0, -1 / 3.0);
+        Vector4 Q = $R < P.X ? new(P.XYW, $R) : new($R, P.Y, P.Z, P.X);
+        double C = Q.X - Math.Min(Q.W, Q.Y);
+        double H = Math.Abs((Q.W - Q.Y) / (6 * C + 1e-10) + Q.Z);
+
+        return (H, C, Q.X);
+    }",
+    @"public readonly (double H, double C, double L) ToHCL()
+    {
+        double H = 0;
+        double U = Math.Min($R, Math.Min($G, $B));
+        double V = Math.Max($R, Math.Max($G, $B));
+        double Q = HCLgamma / HCLy0;
+        double C = V - U;
+
+        if (C != 0)
+        {
+            H = Math.Atan2($G - $B, $R - $G) / Math.PI;
+            Q *= U / V;
+        }
+
+        Q = Math.Exp(Q);
+        H = (H / 2 - Math.Min(H % 1, -H % 1) / 6) % 1;
+        C *= Q;
+
+        double L = (-U * (1 - Q) + V * Q) / (HCLmaxL * 2);
+
+        return (H, C, L);
+    }",
+    @"public readonly double ToBlackbodyTemperature()
+    {
+        (double x, double y) = ToNormalizedChromaticity();
+        double n = (x - .332) / (.1858 - y);
+
+        return ((449 * n + 3525) * n + 6823.3) * n + 5520.33;
+    }",
+    @"public readonly ConsoleColor ToConsoleColor(ConsoleColorScheme color_scheme)
+    {
+        $type copy = this;
+        Scalar norm = Scalar.Sqrt(3);
+
+        return (from kvp in IColor.ConsoleColorSchemes[color_scheme]
+                orderby copy.EucledianRGBDistanceTo(($type)kvp.Value) / norm ascending
+                select kvp.Key).FirstOrDefault();
+    }",
+    @"public readonly int CompareTo([AllowNull] $type other)
+    {
+        int dist = ((Vector3)this).Length.CompareTo(((Vector3)other).Length);
+
+        return dist is 0 ? $A.CompareTo(other.$A) : dist;
+    }",
+    @"public static $type Parse(string str) => TryParse(str, out $type color) ? color : throw new ArgumentException($""The given string '{str}' cannot be parsed as a {typeof($type)}."", nameof(str));",
+    @"public static bool TryParse(string str, out $type color)
+    {
+        static string normalize(string input) => input.ToLowerInvariant().Remove('-', '_', ' ', '\r', '\n', '\v', '\t', '\0', '\b', '\a');
+
+        color = default;
+        str = normalize(str);
+
+        if (str.Match(RGBAColor.REGEX_HEX, out Match? match) && uint.TryParse(match.Groups[""hex""].Value, NumberStyles.HexNumber, null, out uint hex))
+        {
+            color = new(hex);
+
+            return true;
+        }
+        if (str.Match(RGBAColor.REGEX_CSS, out match))
+        {
+            static double parse(string value)
+            {
+                if (value.Length is 0)
+                    return 0;
+                else if (value[^1] == '%' && double.TryParse(value[..^1], out double d))
+                    return d * .01;
+                else if (double.TryParse(value, out d))
+                {
+                    if (value.Contains('.') && Math.Abs(d) <= 1)
+                        d /= 255;
+
+                    return d;
+                }
+                else
+                    return 0;
+            }
+            string mode = match.Groups[""mode""].Value;
+            double x = parse(match.Groups[""x""].Value);
+            double y = parse(match.Groups[""y""].Value);
+            double z = parse(match.Groups[""z""].Value);
+            double w = parse(match.Groups[""w""].Value);
+
+            if (mode is ""rgb"")
+                color = new(x, y, z);
+            else if (mode is ""rgba"")
+                color = new(x, y, z, w);
+            else if (mode is ""hsv"")
+                color = FromHSV(x, y, z);
+            else if (mode is ""hsva"")
+                color = FromHSV(x, y, z, w);
+            else if (mode is ""hsl"")
+                color = FromHSL(x, y, z);
+            else if (mode is ""hsla"")
+                color = FromHSL(x, y, z, w);
+            else if (mode is ""hcl"")
+                color = FromHCL(x, y, z);
+            else if (mode is ""hcla"")
+                color = FromHCL(x, y, z, w);
+            else if (mode is ""hcy"")
+                color = FromHCY(x, y, z);
+            else if (mode is ""hcya"")
+                color = FromHCY(x, y, z, w);
+            else if (mode is ""xyz"")
+                color = FromXYZ(x, y, z);
+            else if (mode is ""yuv"")
+                color = FromYUV(x, y, z);
+            else if (mode is ""uv"")
+                color = FromUV(x, y);
+            else if (mode is ""xyza"")
+                color = FromXYZ(x, y, z, w);
+            else if (mode is ""yuva"")
+                color = FromYUV(x, y, z, w);
+            else if (mode is ""uva"")
+                color = FromUV(x, y, w);
+
+
+            // TODO: yiq
+            // TODO: ycbcr / ybr
+            // TODO: cmyk
+
+            else
+                return false;
+
+            return true;
+        }
+        else if (IColor.KnownColorNames.FirstOrDefault(kvp => normalize(kvp.Value) == str) is { Key: uint hex2, Value: { } })
+        {
+            color = new(hex2);
+
+            return true;
+        }
+        else
+            return false;
+    }",
+    @"public readonly double DistanceTo($type other, ColorEqualityMetric metric) => metric switch
+    {
+        ColorEqualityMetric.RGBAChannels => Math.Abs($R - other.$R)
+                                          + Math.Abs($G - other.$G)
+                                          + Math.Abs($B - other.$B)
+                                          + Math.Abs($A - other.$A),
+        ColorEqualityMetric.RGBChannels => Math.Abs($R - other.$R)
+                                         + Math.Abs($G - other.$G)
+                                         + Math.Abs($B - other.$B),
+        ColorEqualityMetric.RChannel => Math.Abs($R - other.$R),
+        ColorEqualityMetric.GChannel => Math.Abs($G - other.$G),
+        ColorEqualityMetric.BChannel => Math.Abs($B - other.$B),
+        ColorEqualityMetric.Alpha => Math.Abs($A - other.$A),
+        ColorEqualityMetric.RGChannels => Math.Abs($R - other.$R)
+                                        + Math.Abs($G - other.$G),
+        ColorEqualityMetric.RBChannels => Math.Abs($R - other.$R)
+                                        + Math.Abs($B - other.$B),
+        ColorEqualityMetric.RAChannels => Math.Abs($R - other.$R)
+                                        + Math.Abs($A - other.$A),
+        ColorEqualityMetric.GBChannels => Math.Abs($G - other.$G)
+                                        + Math.Abs($B - other.$B),
+        ColorEqualityMetric.GAChannels => Math.Abs($G - other.$G)
+                                        + Math.Abs($A - other.$A),
+        ColorEqualityMetric.BAChannels => Math.Abs($A - other.$A)
+                                        + Math.Abs($B - other.$B),
+        ColorEqualityMetric.RGAChannels => Math.Abs($R - other.$R)
+                                         + Math.Abs($G - other.$G)
+                                         + Math.Abs($A - other.$A),
+        ColorEqualityMetric.RBAChannels => Math.Abs($R - other.$R)
+                                         + Math.Abs($B - other.$B)
+                                         + Math.Abs($A - other.$A),
+        ColorEqualityMetric.GBAChannels => Math.Abs($G - other.$G)
+                                         + Math.Abs($B - other.$B)
+                                         + Math.Abs($A - other.$A),
+        ColorEqualityMetric.CChannel => Math.Abs(ToCMYK().C - other.ToCMYK().C),
+        ColorEqualityMetric.MChannel => Math.Abs(ToCMYK().M - other.ToCMYK().M),
+        ColorEqualityMetric.YChannel => Math.Abs(ToCMYK().Y - other.ToCMYK().Y),
+        ColorEqualityMetric.KChannel => Math.Abs(ToCMYK().K - other.ToCMYK().K),
+        ColorEqualityMetric.Hue => Math.Abs(ToHSL().H - other.ToHSL().H),
+        ColorEqualityMetric.Saturation => Math.Abs(ToHSL().S - other.ToHSL().S),
+        ColorEqualityMetric.Luminance => Math.Abs(ToHSL().L - other.ToHSL().L),
+        ColorEqualityMetric.CIALAB94 => CIALAB94DistanceTo(other),
+        ColorEqualityMetric.CIEGray => Math.Abs(CIEGray - other.CIEGray),
+        ColorEqualityMetric.Average => Math.Abs(Average - other.Average),
+        ColorEqualityMetric.EucledianRGBLength => EucledianRGBDistanceTo(other),
+        ColorEqualityMetric.EucledianRGBALength => EucledianRGBADistanceTo(other),
+        ColorEqualityMetric.LegacyConsoleColor => FromConsoleColor(ToConsoleColor(ConsoleColorScheme.Legacy), ConsoleColorScheme.Legacy).DistanceTo(
+            FromConsoleColor(other.ToConsoleColor(ConsoleColorScheme.Legacy), ConsoleColorScheme.Legacy),
+            ColorEqualityMetric.RGAChannels
+        ),
+        ColorEqualityMetric.Windows10ConsoleColor => FromConsoleColor(ToConsoleColor(ConsoleColorScheme.Windows10), ConsoleColorScheme.Windows10).DistanceTo(
+            FromConsoleColor(other.ToConsoleColor(ConsoleColorScheme.Windows10), ConsoleColorScheme.Windows10),
+            ColorEqualityMetric.RGAChannels
+        ),
+        _ => throw new ArgumentOutOfRangeException(nameof(metric)),
+    };",
+    @"public override readonly int GetHashCode() => $HEX;",
+    @"public override bool Equals(object? other) => other is $type c && Equals(c);",
+    @"public readonly bool Equals($type other) => $HEX == other.$HEX;",
+    @"public readonly bool Equals($type other, ColorEqualityMetric metric) => Equals(other, metric, Scalar.ComputationalEpsilon);",
+    @"public readonly bool Equals($type other, ColorEqualityMetric metric, double tolerance) => Equals(other, new(tolerance, metric));",
+    @"public readonly bool Equals($type other, ColorTolerance tolerance) => DistanceTo(other, tolerance.Metric) <= tolerance.Tolerance;",
+    @"public static $type FromConsoleColor(ConsoleColor color, ConsoleColorScheme color_scheme) => ($type)IColor.ConsoleColorSchemes[color_scheme][color];",
+    @"public static $type FromComplexWrapped(Complex c) => FromComplexWrapped(c, 1);",
+    @"public static $type FromComplexWrapped(Complex c, double α)
+    {
+        Scalar l = c.Length;
+        Scalar i = 1L << (int)Math.Log2(l);
+
+        if (l < 1)
+            return FromHSL(c.Argument, 1, l / 2, α);
+
+        l %= i;
+        l /= (long)i << 1;
+        l *= 4 / 5d;
+        l += 1 / 5d;
+
+        return FromHSL(c.Argument, 1, l, α);
+    }",
+    @"public static $type FromComplexSmooth(Complex c) => FromComplexSmooth(c, 1);",
+    @"public static $type FromComplexSmooth(Complex c, double α) => FromComplexSmooth(c, α, .95);",
+    @"public static $type FromComplexSmooth(Complex c, double α, Scalar white_shift) => FromHSL(c.Argument, 1, 1 - white_shift.Clamp().Power(c.Length), α);",
+    @"public readonly $type ToSRGB($type c) => c.ToSRGB();",
+    @"public readonly $type ToSRGB(double R, double G, double B) => ToSRGB(R, G, B, 1);",
+    @"public readonly $type ToSRGB(double R, double G, double B, double α) => ToSRGB(FromRGB(R, G, B, α));",
+    @"public readonly $type FromSRGB($type c) => c.FromSRGB();",
+    @"public readonly $type FromSRGB(double sR, double sG, double sB) => FromSRGB(sR, sG, sB, 1);",
+    @"public readonly $type FromSRGB(double sR, double sG, double sB, double α) => FromSRGB(FromRGB(sR, sG, sB, α));",
+    @"public static $type FromRGB(double R, double G, double B) => FromRGB(R, G, B, 1);",
+    @"public static $type FromRGB(double R, double G, double B, double α) => new $type(R, G, B, α);",
+    @"public static $type FromHSL(double H, double S, double L) => FromHSL(H, S, L, 1);",
+    @"public static $type FromHSL(double H, double S, double L, double α)
+    {
+        if (S.IsZero())
+        {
+            byte gray = (byte)Math.Round(L * 255);
+
+            return new $type(gray, gray, gray, α);
+        }
+        else
+        {
+            double t2 = L < .5 ? L * (1 + S) : L + S - (L * S);
+            double t1 = (2 * L) - t2;
+
+            H *= 180 / Math.PI;
+
+            return new $type(
+                calc(H + 120, t1, t2),
+                calc(H, t1, t2),
+                calc(H - 120, t1, t2),
+                α
+            );
+
+            static double calc(double h, double t1, double t2)
+            {
+                h = (h + 360) % 360;
+
+                return h < 60 ? t1 + ((t2 - t1) * h / 60)
+                     : h < 180 ? t2
+                     : h < 240 ? t1 + ((t2 - t1) * (240 - h) / 60)
+                     : t1;
+            }
+        }
+    }",
+    @"public static $type FromNormalizedVector(Vector2 vector) => FromHSV(vector.Angle, 1, vector.Length);",
+    @"public static $type FromHue(Complex complex) => FromHue(complex.Argument);",
+    @"public static $type FromHue(Vector2 vector) => FromHue(vector.Angle);",
+    @"public static $type FromHue(double hue) => FromHSV(hue, 1, 1, 1);",
+    @"public static $type FromHSV(double H, double S, double V) => FromHSV(H, S, V, 1);",
+    @"public static $type FromHSV(double H, double S, double V, double α)
+    {
+        double L = V - V * S / 2;
+        double m = Math.Min(L, 1 - L);
+
+        return FromHSL(H, m > 0 ? (V - L) / m : 0, L, α);
+    }",
+    @"public static $type FromHCY(double H, double C, double Y) => FromHCY(H, C, Y, 1);",
+    @"public static $type FromHCY(double H, double C, double Y, double α)
+    {
+        Vector3 RGB = FromHue(H);
+        double Z = RGB * HCYwts;
+
+        if (Y < Z)
+            C *= Y / Z;
+        else if (Z < 1)
+            C *= (1 - Y) / (1 - Z);
+
+        return new Vector4((RGB - Z) * C + Y, α);
+    }",
+    @"public static $type FromCIELAB94(double L, double a, double b) => FromCIELAB94(L, a, b, 1);",
+    @"public static $type FromCIELAB94(double L, double a, double b, double α)
+    {
+        double y = (L + 16) / 116;
+        double x = a / 500 + y;
+        double z = y - b / 200;
+        void pre(double fac, ref double channel)
+        {
+            double c3 = channel * channel * channel;
+
+            channel = fac * ((c3 > .008856) ? c3 : (channel - 16 / 116) / 7.787);
+        }
+        double post(double channel) => ((channel > .0031308) ? (1.055 * Math.Pow(channel, 1 / 2.4) - .055) : 12.92 * channel).Clamp();
+
+        pre( .95047, ref x);
+        pre(1.00000, ref y);
+        pre(1.08883, ref z);
+
+        double rf = post(3.2406 * x - 1.5372 * y -  .4986 * z);
+        double gf = post(-.9689 * x + 1.8758 * y +  .0415 * z);
+        double bf = post( .0557 * x -  .2040 * y + 1.0570 * z);
+
+        return new $type(rf, gf, bf, α);
+    }",
+    @"public static $type FromXYZ(double X, double Y) => FromXYZ(X, Y, 0);",
+    @"public static $type FromXYZ(double X, double Y, double Z) => FromXYZ(X, Y, Z, 1);",
+    @"public static $type FromXYZ(double X, double Y, double Z, double α)
+    {
+        Matrix3 M = (
+            2.28783845614809,    -.833367666472978,  -.45447078967511,
+            -.511651382108328,   1.42275838011598,    .0888930019923529,
+             .00572041000477002, -.0159068489924701, 1.0101864389877
+        );
+
+        return new Vector4(M * (X, Y, Z), α);
+    }",
+    @"public static $type FromUV(double U, double V) => FromUV(U, V, 1);",
+    @"public static $type FromUV(double U, double V, double α) => FromXYZ((9 * U) / ((6 * U) - (16 * V) + 12), (4 * V) / ((6 * U) - (16 * V) + 12), α);",
+    @"public static $type FromYUV(double Y, double U, double V) => FromYUV(Y, U, V, 1);",
+    @"public static $type FromYUV(double Y, double U, double V, double α)
+    {
+        Y -= 16;
+        U -= 128;
+        V -= 128;
+
+        return new $type(
+            1.164 * Y + 1.596 * V,
+            1.164 * Y -  .392 * U - .813 * V,
+            1.164 * Y + 2.017 * U,
+            α
+        );
+    }",
+    @"public static $type FromHCL(double H, double C, double L) => FromHCL(H, C, L, 1);",
+    @"public static $type FromHCL(double H, double C, double L, double α)
+    {
+        Vector3 rgb = Vector3.Zero;
+
+        if (L != 0)
+        {
+            L *= HCLmaxL;
+
+            double Q = Math.Exp((1 - C / (2 * L)) * (HCLgamma / HCLy0));
+            double U = (2 * L - C) / (2 * Q - 1);
+            double V = C / Q;
+            double A = (H + Math.Min(((2 * H) % 1) / 4, ((-2 * H) % 1) / 8)) * Math.Tau;
+            double T = Math.Tan(A);
+
+            H *= 6;
+            rgb = H switch
+            {
+                <= 0.999 => new(1, T / (1 + T), 0),
+                <= 1.001 => new(1, 1, 0),
+                <= 2 => new((1 + T) / T, 1, 0),
+                <= 3 => new(0, 1, 1 + T),
+                <= 3.999 => new(0, 1 / (1 + T), 1),
+                <= 4.001 => new(0, 0, 1),
+                <= 5 => new(-1 / T, 0, 1),
+                _ => new(1, 0, -T)
+            };
+            rgb = rgb * V + U;
+        }
+
+        return new Vector4(rgb, α);
+    }",
+    @"public static $type FromYIQ(double Y, double I, double Q) => FromYIQ(Y, I, Q, 1);",
+    @"public static $type FromYIQ(double Y, double I, double Q, double α) => new $type(
+        Y +  .956 * I +  .619 * Q,
+        Y -  .272 * I -  .647 * Q,
+        Y - 1.106 * I + 1.703 * Q,
+        α
+    );",
+    @"public static $type FromYCbCr(double Y, double Cb, double Cr) => FromYCbCr(Y, Cb, Cr, 1);",
+    @"public static $type FromYCbCr(double Y, double Cb, double Cr, double α) => new $type(
+        Y + (Cr - 128) * 1.402,
+        Y + (Cb - 128) * -.34414 + (Cr - 128) * -.71414,
+        Y + (Cb - 128) * 1.772,
+        α
+    );",
+    @"public static $type FromCMYK(double C, double M, double Y, double K) => FromCMYK(C, M, Y, K, 1);",
+    @"public static $type FromCMYK(double C, double M, double Y, double K, double α) => (
+        (1 - C) * (1 - K),
+        (1 - M) * (1 - K),
+        (1 - Y) * (1 - K),
+        α
+    );",
+    @"public static $type FromWavelength(in Wavelength wavelength) => FromWavelength(in wavelength, 1);",
+    @"public static $type FromWavelength(in Wavelength wavelength, double α)
+    {
+        double r = 0, g = 0, b = 0;
+
+        if (wavelength.IsVisible)
+        {
+            double l = wavelength.InNanometers;
+            double t;
+
+            if (l < 410)
+            {
+                t = (l - 400) / 10d;
+                r = .33 * t - .20 * t * t;
+            }
+            else if ((l >= 410) && (l < 475))
+            { 
+                t = (l - 410) / 65d;
+                r = .14 - .13 * t * t;
+            }
+            else if ((l >= 545) && (l < 595))
+            {
+                t = (l - 545) / 50d;
+                r = 1.98 * t - t * t;
+            }
+            else if ((l >= 595) && (l < 650))
+            {
+                t = (l - 595) / 55d;
+                r = .98 + .06 * t - .40 * t * t;
+            }
+            else if (l >= 650)
+            {
+                t = (l - 650) / 50d;
+                r = .65 - .84 * t + .20 * t * t;
+            }
+
+            if (l >= 415 && l < 475)
+            {
+                t = (l - 415) / 60d;
+                g = .8 * t * t;
+            }
+            else if (l >= 475 && l < 590)
+            {
+                t = (l - 475) / 115d;
+                g = .8 + .76 * t - .8 * t * t;
+            }
+            else if (l >= 585 && l < 639.0)
+            {
+                t = (l - 585) / 54d;
+                g = .84 * (1 - t);
+            }
+
+            if (l >= 400 && l < 475)
+            {
+                t = (l - 400) / 75d;
+                b = 2.2 * t - 1.5 * t * t;
+            }
+            else if (l >= 475 && l < 560)
+            {
+                t = (l - 475) / 85d;
+                b = .7 - t + .3 * t * t;
+            }
+        }
+
+        return new $type(r, g, b, α);
+    }",
+    @"public static $type FromSpectrum(Spectrum spectrum) => FromSpectrum(spectrum, 1);",
+    @"public static $type FromSpectrum(Spectrum spectrum, double α)
+    {
+        Vector4 color = Vector4.Zero;
+        double total = 0;
+
+        IEnumerable<(Wavelength w, double i)> intensities;
+
+        if (spectrum is DiscreteSpectrum discrete)
+            intensities = discrete.Intensities.FromDictionary();
+        else
+        {
+            List<(Wavelength, double)> list = new();
+
+            foreach (Wavelength wavelength in Wavelength.VisibleWavelengths)
+                list.Add((wavelength, spectrum.GetIntensity(wavelength)));
+
+            intensities = list;
+        }
+
+        foreach ((Wavelength wavelength, double intensity) in intensities)
+        {
+            color += intensity * (Vector4)FromWavelength(in wavelength);
+            total += intensity;
+        }
+
+        color /= total;
+
+        return new $type(color.X, color.Y, color.Z, α);
+    }",
+    @"public static $type FromBlackbodyTemperature(double temperature) => FromBlackbodyTemperature(temperature, 1);",
+    @"public static $type FromBlackbodyTemperature(double temperature, double α)
+    {
+        double x = temperature / 1000;
+        double x2 = x * x;
+        double x3 = x2 * x;
+        double x4 = x3 * x;
+        double x5 = x4 * x;
+        double R, G, B;
+
+        if (temperature <= 6600)
+            R = 1;
+        else
+            R = .0002889 * x5 - .01258 * x4 + .2148 * x3 - 1.776 * x2 + 6.907 * x - 8.723;
+
+        if (temperature <= 6600)
+            G = -4.593e-5 * x5 + .001424 * x4 - .01489 * x3 + .0498 * x2 + .1669 * x - .1653;
+        else
+            G = -1.308e-7 * x5 + 1.745e-5 * x4 - .0009116 * x3 + .02348 * x2 - .3048 * x + 2.159;
+
+        if (temperature <= 2000)
+            B = 0;
+        else if (temperature < 6600)
+            B = 1.764e-5 * x5 + .0003575 * x4 - .01554 * x3 + .1549 * x2 - .3682 * x + .2386;
+        else
+            B = 1;
+
+        return new $type(R, G, B, α);
+    }",
+    @"public static $type LinearInterpolate($type color1, $type color2, double amount)
+    {
+        $type res = default;
+
+        res.$R = color1.$R * (1 - amount) + color2.$R * amount;
+        res.$G = color1.$G * (1 - amount) + color2.$G * amount;
+        res.$B = color1.$B * (1 - amount) + color2.$B * amount;
+        res.$A = color1.$A * (1 - amount) + color2.$A * amount;
+
+        return res;
+    }",
+    @"public static $type FromARGB32(int argb) => new(argb);",
+    @"public static $type FromARGB32(uint argb) => new(argb);",
+    @"public static bool operator ==($type first, $type second) => first.Equals(second);",
+    @"public static bool operator !=($type first, $type second) => !(first == second);",
+    @"public static bool operator <($type first, $type second) => first.CompareTo(second) < 0;",
+    @"public static bool operator >($type first, $type second) => first.CompareTo(second) > 0;",
+    @"public static bool operator <=($type first, $type second) => first.CompareTo(second) <= 0;",
+    @"public static bool operator >=($type first, $type second) => first.CompareTo(second) >= 0;",
+    @"public static $type operator +($type color) => color;",
+    @"public static $type operator -($type color) => new(-color.$R, -color.$G, -color.$B, -color.$A);",
+    @"public static $type operator +($type first, $type second) => new(first.$R + second.$R, first.$G + second.$G, first.$B + second.$B, first.$A + second.$A);",
+    @"public static $type operator -($type first, $type second) => new(first.$R - second.$R, first.$G - second.$G, first.$B - second.$B, first.$A - second.$A);",
+    @"public static $type operator *(double factor, $type color) => color * factor;",
+    @"public static $type operator *($type color, double factor) => new(color.$R * factor, color.$G * factor, color.$B * factor, color.$A * factor);",
+    @"public static $type operator /($type color, double factor) => new(color.$R / factor, color.$G / factor, color.$B / factor, color.$A / factor);",
+    @"public static implicit operator (double r, double g, double b)($type color) => (color.$R, color.$G, color.$B);",
+    @"public static implicit operator (double r, double g, double b, double α)($type color) => (color.$R, color.$G, color.$B, color.$A);",
+    @"public static implicit operator $type((double r, double g, double b) color) => new(color.r, color.g, color.b, 1);",
+    @"public static implicit operator $type((double r, double g, double b, double α) color) => new(color.r, color.g, color.b, color.α);",
+    @"public static implicit operator Vector3($type color) => new(color.$R, color.$G, color.$B);",
+    @"public static implicit operator Vector4($type color) => new(color.$R, color.$G, color.$B, color.$A);",
+    @"public static implicit operator (Vector3 color, Scalar α)($type color) => (new(color.$R, color.$G, color.$B), color.$A);",
+    @"public static implicit operator (Vector3 color, double α)($type color) => (new(color.$R, color.$G, color.$B), color.$A);",
+    @"public static implicit operator $type(Vector3 color) => new(color.X, color.Y, color.Z, 1d);",
+    @"public static implicit operator $type(Vector4 color) => new(color.X, color.Y, color.Z, color.W);",
+    @"public static implicit operator $type((Vector3 color, Scalar α) rgba) => new(rgba.color.X, rgba.color.Y, rgba.color.Z, rgba.α);",
+    @"public static implicit operator $type((Vector3 color, double α) rgba) => new(rgba.color.X, rgba.color.Y, rgba.color.Z, rgba.α);",
+    @"public static implicit operator $type(in Wavelength wavelength) => FromWavelength(in wavelength);",
+};
+var types = new (string name, Func<string, string> proc)[]
+{
+    ("HDRColor", s => s.Replace($"$HEX", "ARGB32").Replace("$R", "R").Replace("$G", "G").Replace("$B", "B").Replace("$A", "A")),
+    ("RGBAColor", s => s.Replace($"$HEX", "ARGB").Replace("$R", "Rf").Replace("$G", "Gf").Replace("$B", "Bf").Replace("$A", "Af")),
+};
+#>
+///////////////////////////////////////////////////////////////////////
+//             AUTOGENERATED <#=DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.ffffff")#>              //
+//   All your changes to this file will be lost upon re-generation.  //
+///////////////////////////////////////////////////////////////////////
+
+using System.Diagnostics.CodeAnalysis;
+using System.Runtime.CompilerServices;
+using System.Text.RegularExpressions;
+using System.Collections.Generic;
+using System.Globalization;
+using System.Linq;
+using System;
+
+using Unknown6656.Physics.Optics;
+using Unknown6656.Mathematics.LinearAlgebra;
+using Unknown6656.Mathematics.Analysis;
+using Unknown6656.Mathematics;
+using Unknown6656.Generics;
+using Unknown6656.Common;
+
+namespace Unknown6656.Imaging;
+
+
+public partial interface IColor
+{
+    internal static readonly Dictionary<uint, string> KnownColorNames = new()
+    {
+<#
+foreach ((string hex, string name) in colors)
+    WriteLine($"        [0x{hex}u] = \"{name}\",");
+#>
+    };
+}
+<#
+bool M(string s, string p, out Match m) => (m = Regex.Match(s, p, RegexOptions.Compiled | RegexOptions.IgnoreCase)).Success;
+
+foreach ((string name, Func<string, string> process) in types)
+{
+#>
+
+public unsafe partial struct <#=name#>
+{
+    private const double HCLgamma = 3;
+    private const double HCLy0 = 100;
+    private static readonly double HCLmaxL = Math.Exp(HCLgamma / HCLy0) - 0.5;
+    private static readonly Vector3 HCYwts = new(0.299, 0.587, 0.114);
+
+
+<#
+    foreach (string member in members)
+    {
+        string content = process(member).Replace("$type", name);
+
+        if (string.IsNullOrWhiteSpace(content))
+            continue;
+        else if (content.Count(c => c is '\n') < 8 &&
+            !content.Contains("MethodImplOptions") &&
+            !M(content, @"^[^\n]+\w+\s*=>", out _))
+            WriteLine("    [MethodImpl(MethodImplOptions.AggressiveInlining)]");
+
+        WriteLine($"    {content}\r\n");
+    }
+
+    foreach (var color in colors)
+    {
+        int argb = int.Parse(color.hex, System.Globalization.NumberStyles.HexNumber);
+        float a = ((argb & 0xff000000) >> 24) / 255f;
+        float r = ((argb & 0xff0000) >> 24) / 255f;
+        float g = ((argb & 0xff00) >> 24) / 255f;
+        float b = (argb & 0xff) / 255f;
+#>
+
+    /// <summary>
+    /// Represents the (HTML) color '<#=color.name#>' (#<#=color.hex#>) with the following color values for each channel:
+    /// <list type="bullet">
+    ///     <item><c>A: 0x<#=color.hex.Substring(0, 2)#> - <#=a.ToString()#></c></item>
+    ///     <item><c>R: 0x<#=color.hex.Substring(2, 2)#> - <#=r.ToString()#></c></item>
+    ///     <item><c>G: 0x<#=color.hex.Substring(4, 2)#> - <#=g.ToString()#></c></item>
+    ///     <item><c>B: 0x<#=color.hex.Substring(6, 2)#> - <#=b.ToString()#></c></item>
+    /// </list>
+    /// </summary>
+    public static RGBAColor <#=color.name#> { get; } = 0x<#=color.hex#>;
+<#
+    }
+
+    foreach (var color in dup_colors)
+    {
+#>
+
+    /// <summary>
+    /// Represents the color '<#=color.name#>' (#<#=color.hex#>). This color is an alias for the following colors:
+    /// <list type="bullet">
+<#
+        foreach (var dup in color.aliases)
+            WriteLine($"    ///     <item><see cref=\"{dup}\"/></item>");
+#>
+    /// </list>
+    /// </summary>
+    public static RGBAColor <#=color.name#> { get; } = 0x<#=color.hex#>;
+<#
+    }
+#>
+}
+<#
+}
+#>
