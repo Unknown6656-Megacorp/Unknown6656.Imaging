@@ -34,6 +34,51 @@ public abstract class DrawableShape
     public void DrawTo(Shape2DRasterizer rasterizer, ShapeDrawingSettings settings) => rasterizer.Draw(this, settings);
 
     internal protected abstract void internal_draw(RenderPass pass, RenderPassDrawMode mode);
+
+    public static implicit operator DrawableShape(Shape2D shape) => new Shape2DWrapper(shape);
+
+
+    private sealed class Shape2DWrapper(Shape2D shape)
+        : DrawableShape
+    {
+        internal protected override void internal_draw(RenderPass pass, RenderPassDrawMode mode)
+        {
+            if (shape is Line2D line)
+                pass.DrawPolygon(mode, false, line.From, line.To);
+            else if (shape is Triangle2D triangle)
+                pass.DrawPolygon(mode, true, triangle.CornerA, triangle.CornerB, triangle.CornerC);
+            else if (shape is Parallelogram2D parallelogram)
+                pass.DrawPolygon(mode, true, parallelogram.BottomLeft, parallelogram.BottomRight, parallelogram.TopRight, parallelogram.TopLeft);
+            else if (shape is Shape2D.ExclusiveOrShape or)
+            {
+                or.Union.internal_draw(pass, mode);
+                or.Overlap.internal_draw(pass, mode.Invert());
+            }
+            else if (shape is Shape2D.DifferenceShape difference)
+            {
+                difference.First.internal_draw(pass, mode);
+                difference.Second.internal_draw(pass, mode.Invert());
+            }
+            else if (shape is Shape2D.IntersectionShape intersection)
+                throw new NotImplementedException();
+            else if (shape is Shape2D.UnionShape and)
+            {
+                shape.First.internal_draw(pass, mode);
+                shape.Second.internal_draw(pass, mode);
+            }
+            else if (shape is Ellipse2D ellipse)
+            {
+                const int count = 128;
+                (Matrix3 matrix, _) = ellipse.GetTransformationMatrix();
+                Vector2[] corners = Enumerable.Range(0, count).ToArray(i => matrix.HomogeneousMultiply(Vector2.UnitX.Rotate(i / count * Scalar.Tau)));
+
+                pass.DrawEllipse(mode, corners);
+            }
+            else
+                throw new NotSupportedException();
+
+        }
+    }
 }
 
 public sealed class Shape2DRasterizer
@@ -69,6 +114,7 @@ public sealed class Shape2DRasterizer
             0, 0, 1
         );
     }
+
 
     public void Draw(DrawableShape shape, ShapeDrawingSettings settings) => Draw(new[] { shape }, settings);
 
