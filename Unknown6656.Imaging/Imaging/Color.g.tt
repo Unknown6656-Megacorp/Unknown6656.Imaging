@@ -1390,6 +1390,8 @@ var members = new string[]
     //     α = $A;
     // }",
     // @"public readonly void Deconstruct(out double r, out double g, out double b) => Deconstruct(out r, out g, out b, out _);",
+    @"public readonly Vector3 ToVector3() => new($R, $G, $B);",
+    @"public readonly Vector4 ToVector4() => new($R, $G, $B, $A);",
     @"public readonly (double H, double S, double L) ToHSL()
     {
         double a = Math.Min(Math.Min($R, $G), $B);
@@ -1487,7 +1489,7 @@ var members = new string[]
         $type color = this;
         Dictionary<Wavelength, double> intensities = Wavelength.VisibleWavelengths.ToDictionary(LINQ.id, w => color.GetIntensity(w, 0));
 
-        return new DiscreteSpectrum(intensities);
+        return new(intensities);
     }",
     @"public readonly double GetIntensity(Wavelength wavelength, double tolerance = 1e-1)
     {
@@ -1749,7 +1751,7 @@ var members = new string[]
     @"public readonly $type FromSRGB(double sR, double sG, double sB) => FromSRGB(sR, sG, sB, 1);",
     @"public readonly $type FromSRGB(double sR, double sG, double sB, double α) => FromSRGB(FromRGB(sR, sG, sB, α));",
     @"public static $type FromRGB(double R, double G, double B) => FromRGB(R, G, B, 1);",
-    @"public static $type FromRGB(double R, double G, double B, double α) => new $type(R, G, B, α);",
+    @"public static $type FromRGB(double R, double G, double B, double α) => new(R, G, B, α);",
     @"public static $type FromHSL(double H, double S, double L) => FromHSL(H, S, L, 1);",
     @"public static $type FromHSL(double H, double S, double L, double α)
     {
@@ -1757,7 +1759,7 @@ var members = new string[]
         {
             byte gray = (byte)Math.Round(L * 255);
 
-            return new $type(gray, gray, gray, α);
+            return new(gray, gray, gray, α);
         }
         else
         {
@@ -1766,7 +1768,7 @@ var members = new string[]
 
             H *= 180 / Math.PI;
 
-            return new $type(
+            return new(
                 calc(H + 120, t1, t2),
                 calc(H, t1, t2),
                 calc(H - 120, t1, t2),
@@ -1831,7 +1833,7 @@ var members = new string[]
         double gf = post(-.9689 * x + 1.8758 * y +  .0415 * z);
         double bf = post( .0557 * x -  .2040 * y + 1.0570 * z);
 
-        return new $type(rf, gf, bf, α);
+        return new(rf, gf, bf, α);
     }",
     @"public static $type FromXYZ(double X, double Y) => FromXYZ(X, Y, 0);",
     @"public static $type FromXYZ(double X, double Y, double Z) => FromXYZ(X, Y, Z, 1);",
@@ -1854,7 +1856,7 @@ var members = new string[]
         U -= 128;
         V -= 128;
 
-        return new $type(
+        return new(
             1.164 * Y + 1.596 * V,
             1.164 * Y -  .392 * U - .813 * V,
             1.164 * Y + 2.017 * U,
@@ -1894,14 +1896,14 @@ var members = new string[]
         return new Vector4(rgb, α);
     }",
     @"public static $type FromYIQ(double Y, double I, double Q) => FromYIQ(Y, I, Q, 1);",
-    @"public static $type FromYIQ(double Y, double I, double Q, double α) => new $type(
+    @"public static $type FromYIQ(double Y, double I, double Q, double α) => new(
         Y +  .956 * I +  .619 * Q,
         Y -  .272 * I -  .647 * Q,
         Y - 1.106 * I + 1.703 * Q,
         α
     );",
     @"public static $type FromYCbCr(double Y, double Cb, double Cr) => FromYCbCr(Y, Cb, Cr, 1);",
-    @"public static $type FromYCbCr(double Y, double Cb, double Cr, double α) => new $type(
+    @"public static $type FromYCbCr(double Y, double Cb, double Cr, double α) => new(
         Y + (Cr - 128) * 1.402,
         Y + (Cb - 128) * -.34414 + (Cr - 128) * -.71414,
         Y + (Cb - 128) * 1.772,
@@ -1978,7 +1980,7 @@ var members = new string[]
             }
         }
 
-        return new $type(r, g, b, α);
+        return new(r, g, b, α);
     }",
     @"public static $type FromSpectrum(Spectrum spectrum) => FromSpectrum(spectrum, 1);",
     @"public static $type FromSpectrum(Spectrum spectrum, double α)
@@ -2008,7 +2010,7 @@ var members = new string[]
 
         color /= total;
 
-        return new $type(color.X, color.Y, color.Z, α);
+        return new(color.X, color.Y, color.Z, α);
     }",
     @"public static $type FromBlackbodyTemperature(double temperature) => FromBlackbodyTemperature(temperature, 1);",
     @"public static $type FromBlackbodyTemperature(double temperature, double α)
@@ -2037,7 +2039,7 @@ var members = new string[]
         else
             B = 1;
 
-        return new $type(R, G, B, α);
+        return new(R, G, B, α);
     }",
     @"public static $type LinearInterpolate($type color1, $type color2, double amount)
     {
@@ -2052,6 +2054,8 @@ var members = new string[]
     }",
     @"public static $type FromARGB32(int argb) => new(argb);",
     @"public static $type FromARGB32(uint argb) => new(argb);",
+    @"public static $type FromVector(Vector3 vector) => new(vector.X, vector.Y, vector.Z);",
+    @"public static $type FromVector(Vector4 vector) => new(vector.X, vector.Y, vector.Z, vector.W);",
     @"public static bool operator ==($type first, $type second) => first.Equals(second);",
     @"public static bool operator !=($type first, $type second) => !(first == second);",
     @"public static bool operator <($type first, $type second) => first.CompareTo(second) < 0;",
