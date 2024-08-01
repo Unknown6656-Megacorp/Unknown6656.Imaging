@@ -3,7 +3,6 @@ using System.Runtime.InteropServices;
 using System.Text.RegularExpressions;
 using System.Collections.Generic;
 using System.Drawing;
-using System.Linq;
 using System;
 
 using Unknown6656.Physics.Optics;
@@ -902,5 +901,3 @@ bool constrain_rgb(ref double r, ref double g, ref double b)
 
 
 }
-
-

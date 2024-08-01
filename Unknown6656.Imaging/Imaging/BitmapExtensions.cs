@@ -184,7 +184,7 @@ public static unsafe class BitmapExtensions
     public static Bitmap ReduceColorSpace(this Bitmap bmp, ColorPalette palette, ColorEqualityMetric metric = ColorEqualityMetric.RGBChannels) =>
         new ReduceColorSpace(palette, metric).ApplyTo(bmp);
 
-    public static DensityFunction<RGBAColor> GetHistogram(this Bitmap bmp) => ToPixelArray(bmp).GenerateDensityFunction();
+    public static DensityFunction<RGBAColor> GetHistogram(this Bitmap bmp) => new(ToPixelArray(bmp));
 
     public static RegressionDataSet1D GetHistogram(this Bitmap bmp, params ColorChannel[] channels) => bmp.ToChannelMask(channels).GetHistogram();
 

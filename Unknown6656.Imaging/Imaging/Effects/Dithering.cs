@@ -54,6 +54,8 @@ public unsafe abstract class Dithering
 public unsafe class ErrorDiffusionDithering
     : Dithering
 {
+    private readonly Random _random = new();
+
     public ErrorDiffusionDitheringAlgorithm Algorithm { get; }
 
 
@@ -214,8 +216,11 @@ public unsafe class ErrorDiffusionDithering
     private void RandomDithering(Bitmap bmp, RGBAColor* source, RGBAColor* destination, Rectangle region)
     {
         Vector3 error = Vector3.Zero;
+        int[] indices = GetIndices(bmp, region);
 
-        foreach (int index in GetIndices(bmp, region).Shuffle())
+        _random.Shuffle(indices);
+
+        foreach (int index in indices)
             destination[index] = GetColor(source[index], ref error);
     }
 

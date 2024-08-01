@@ -164,7 +164,7 @@ public sealed class VHSEffect
 
     public void NextSeed()
     {
-        _curr = _rng.NextLong();
+        _curr = _rng.NextInt64();
         FrameCount++;
     }
 
@@ -172,7 +172,7 @@ public sealed class VHSEffect
     {
         XorShift random = new(_curr);
 
-        bmp = new RGBSplit(0, 10 + random.NextFloat())
+        bmp = new RGBSplit(0, 10 + random.NextSingle())
         {
             EdgeHandling = EdgeHandlingMode.Mirror,
             Interpolation = PixelInterpolationMode.BilinearInterpolation

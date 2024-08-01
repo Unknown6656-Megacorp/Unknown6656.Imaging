@@ -851,7 +851,7 @@ public sealed class QOIFCorruptedEffect
         int corruptions = CorruptionCounts;
 
         while (corruptions --> 0)
-            dat[_random.NextInt(sizeof(QOIFHeader), dat.Length - 8)] = _random.NextByte();
+            dat[_random.Next(sizeof(QOIFHeader), dat.Length - 8)] = _random.NextByte();
 
         Bitmap result = new(bmp.Width, bmp.Height, PixelFormat.Format32bppArgb);
         using Bitmap corrupted = stream.SeekBeginning().ToQOIFBitmap();

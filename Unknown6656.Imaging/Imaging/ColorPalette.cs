@@ -1,7 +1,5 @@
 ﻿#define USE_CACHE
 
-using System.Runtime.CompilerServices;
-using System.Runtime.Versioning;
 #if USE_CACHE
 using System.Collections.Concurrent;
 #endif
@@ -1167,6 +1165,10 @@ public class ColorPalette
         0x009200
     );
 
+    // TODO : tailwind CSS color palettes
+
+
+
 
     public ColorPalette(IEnumerable<RGBAColor> colors)
         : base(colors)
@@ -1332,6 +1334,8 @@ public class ColorPalette
     public static implicit operator RGBAColor[](ColorPalette palette) => palette.Colors.ToArray();
 
     public static implicit operator ColorPalette(RGBAColor[] palette) => new(palette);
+
+    public static implicit operator ColorPalette(DiscreteColorMap color_map) => color_map.Colors;
 
     public static ColorPalette operator +(ColorPalette palette, RGBAColor color) => palette + new ColorPalette(color);
 

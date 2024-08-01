@@ -642,7 +642,7 @@ public abstract class MultiFunctionPlotter<Func, POIValue>
     where Func : FieldFunction<POIValue>
     where POIValue : unmanaged, IField<POIValue>, IComparable<POIValue>
 {
-    private int? _selidx = null;
+    private readonly int? _selidx = null;
 
 
     public (Func Function, RGBAColor Color)[] Functions => PlottableItems;
