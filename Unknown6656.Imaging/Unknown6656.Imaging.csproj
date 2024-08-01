@@ -57,10 +57,10 @@
         <None Remove="old\**" />
     </ItemGroup>
     <ItemGroup>
-        <PackageReference Include="System.Drawing.Common" Version="8.0.0" />
+        <PackageReference Include="System.Drawing.Common" Version="8.0.7" />
         <PackageReference Include="System.Drawing.Primitives" Version="4.3.0" />
         <PackageReference Include="Unknown6656.DontUseVar" Version="1.0.1" />
-        <PackageReference Include="Unknown6656.Runtime" Version="1.0.0" />
+        <PackageReference Include="Unknown6656.Runtime" Version="1.0.1" />
         <!--<PackageReference Include="Unknown6656.Core" Version="1.1.11" />-->
     </ItemGroup>
     <ItemGroup>
