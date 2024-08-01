@@ -1045,8 +1045,12 @@ public class DiscreteColorMap
     : ColorMap
 {
     private readonly (Scalar X, RGBAColor Color)[] _colors;
+    private ColorPalette? _palette = null;
+
 
     public int Size => _colors.Length;
+
+    public ColorPalette Colors => _palette ??= _colors.ToArray(c => c.Color);
 
 
     public DiscreteColorMap(params RGBAColor[] colors)
