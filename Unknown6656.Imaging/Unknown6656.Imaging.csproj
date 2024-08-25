@@ -61,8 +61,8 @@
         <PackageReference Include="System.Drawing.Primitives" Version="4.3.0" />
         <PackageReference Include="Unknown6656.Runtime" Version="1.0.1" />
         <PackageReference Include="Unknown6656.Mathematics" Version="1.0.1" />
-        <PackageReference Include="Unknown6656.Physics" Version="0.0.4" />
-        <PackageReference Include="Unknown6656.Units.F64" Version="0.0.4" />
+        <PackageReference Include="Unknown6656.Physics" Version="0.0.5" />
+        <PackageReference Include="Unknown6656.Units.F64" Version="0.0.5" />
     </ItemGroup>
     <ItemGroup>
         <Service Include="{508349b6-6b84-4df5-91f0-309beebad82d}" />
