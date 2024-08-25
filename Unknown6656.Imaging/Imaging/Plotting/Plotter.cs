@@ -1656,6 +1656,8 @@ public class DiscretizedRecurrencePlotter
     }
 }
 
+// TODO : add spectrum plotter
+
 public enum AxisType
 {
     Cartesian,

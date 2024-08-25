@@ -853,12 +853,11 @@ public enum BlendMode
 }
 
 
-//////////// TODO ////////////
-// https://en.wikipedia.org/wiki/CIELAB_color_space#Hunter_Lab
-// https://en.wikipedia.org/wiki/CIE_1931_color_space#Tristimulus_values
-// https://en.wikipedia.org/wiki/CIE_1931_color_space#CIE_standard_observer
-// https://en.wikipedia.org/wiki/Adams_chromatic_valence_color_space
-// 
+// TODO : https://en.wikipedia.org/wiki/CIELAB_color_space#Hunter_Lab
+// TODO : https://en.wikipedia.org/wiki/CIE_1931_color_space#Tristimulus_values
+// TODO : https://en.wikipedia.org/wiki/CIE_1931_color_space#CIE_standard_observer
+// TODO : https://en.wikipedia.org/wiki/Adams_chromatic_valence_color_space
+
 
 internal struct CIEColorSystem 
 {
