@@ -1471,7 +1471,7 @@ var members = new string[]
     }",
     @"public readonly double GetIntensity(Wavelength wavelength, double tolerance = 1e-1)
     {
-        (Wavelength lo, Wavelength hi) = (wavelength.InNanometers + tolerance, wavelength.InNanometers - tolerance);
+        (Nanometer lo, Nanometer hi) = (wavelength.Nanometer + tolerance, wavelength.Nanometer - tolerance);
         double dist_mid = wavelength.ToColor().CIELAB94DistanceTo(this);
 
         if (tolerance < Scalar.ComputationalEpsilon)
@@ -2058,6 +2058,7 @@ var members = new string[]
     @"public static implicit operator $type((Vector3 color, Scalar α) rgba) => new(rgba.color.X, rgba.color.Y, rgba.color.Z, rgba.α);",
     @"public static implicit operator $type((Vector3 color, double α) rgba) => new(rgba.color.X, rgba.color.Y, rgba.color.Z, rgba.α);",
     @"public static implicit operator $type(Wavelength wavelength) => FromWavelength(wavelength);",
+    @"public static implicit operator $type(Spectrum spectrum) => spectrum.ToVisibleColor();",
 };
 var types = new (string name, Func<string, string> proc)[]
 {
