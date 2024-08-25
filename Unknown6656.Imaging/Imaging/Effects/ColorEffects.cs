@@ -8,7 +8,6 @@ using System;
 
 using Unknown6656.Mathematics.LinearAlgebra;
 using Unknown6656.Mathematics.Numerics;
-using Unknown6656.IO;
 
 using Random = Unknown6656.Mathematics.Numerics.Random;
 
