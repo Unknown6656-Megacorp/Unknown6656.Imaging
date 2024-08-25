@@ -1356,7 +1356,7 @@ var members = new string[]
     @"public readonly $type ToSRGB() => CorrectGamma(RGBAColor.SRGB_GAMMA_CORRECTION_FACTOR.MultiplicativeInverse);",
     @"public readonly Scalar EucledianRGBDistanceTo($type other) => ((Vector3)this).DistanceTo(other);",
     @"public readonly Scalar EucledianRGBADistanceTo($type other) => ((Vector4)this).DistanceTo(other);",
-    @"public readonly Scalar CIALAB94DistanceTo(IColor other)
+    @"public readonly Scalar CIELAB94DistanceTo(IColor other)
     {
         (double L1, double a1, double b1) = ToCIELAB94();
         (double L2, double a2, double b2) = other.ToCIELAB94();
@@ -1494,13 +1494,13 @@ var members = new string[]
     @"public readonly double GetIntensity(Wavelength wavelength, double tolerance = 1e-1)
     {
         (Wavelength lo, Wavelength hi) = (wavelength.InNanometers + tolerance, wavelength.InNanometers - tolerance);
-        double dist_mid = wavelength.ToColor().CIALAB94DistanceTo(this);
+        double dist_mid = wavelength.ToColor().CIELAB94DistanceTo(this);
 
         if (tolerance < Scalar.ComputationalEpsilon)
             return dist_mid;
 
-        double dist_lo = lo.ToColor().CIALAB94DistanceTo(this);
-        double dist_hi = hi.ToColor().CIALAB94DistanceTo(this);
+        double dist_lo = lo.ToColor().CIELAB94DistanceTo(this);
+        double dist_hi = hi.ToColor().CIELAB94DistanceTo(this);
 
         return (dist_lo * .2 + dist_mid * .6 + dist_hi * .2).Clamp();
     }",
@@ -1703,7 +1703,7 @@ var members = new string[]
         ColorEqualityMetric.Hue => Math.Abs(ToHSL().H - other.ToHSL().H),
         ColorEqualityMetric.Saturation => Math.Abs(ToHSL().S - other.ToHSL().S),
         ColorEqualityMetric.Luminance => Math.Abs(ToHSL().L - other.ToHSL().L),
-        ColorEqualityMetric.CIALAB94 => CIALAB94DistanceTo(other),
+        ColorEqualityMetric.CIELAB94 => CIELAB94DistanceTo(other),
         ColorEqualityMetric.CIEGray => Math.Abs(CIEGray - other.CIEGray),
         ColorEqualityMetric.Average => Math.Abs(Average - other.Average),
         ColorEqualityMetric.EucledianRGBLength => EucledianRGBDistanceTo(other),

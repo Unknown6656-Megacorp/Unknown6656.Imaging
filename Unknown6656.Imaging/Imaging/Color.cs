@@ -1,4 +1,4 @@
-﻿using System.Runtime.CompilerServices;
+using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Text.RegularExpressions;
 using System.Collections.Generic;
@@ -70,7 +70,8 @@ public partial interface IColor
     (double Y, double U, double V) YUV { get; }
     (double Y, double I, double Q) YIQ { get; }
 
-    Scalar CIALAB94DistanceTo(IColor other);
+
+    Scalar CIELAB94DistanceTo(IColor other);
 
     /// <summary>
     /// Exports the HSL-color channels.
