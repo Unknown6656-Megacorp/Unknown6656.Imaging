@@ -1471,7 +1471,7 @@ var members = new string[]
     }",
     @"public readonly double GetIntensity(Wavelength wavelength, double tolerance = 1e-1)
     {
-        (Nanometer lo, Nanometer hi) = (wavelength.Nanometer + tolerance, wavelength.Nanometer - tolerance);
+        (Wavelength lo, Wavelength hi) = (wavelength + tolerance, wavelength - tolerance);
         double dist_mid = wavelength.ToColor().CIELAB94DistanceTo(this);
 
         if (tolerance < Scalar.ComputationalEpsilon)
@@ -1900,7 +1900,7 @@ var members = new string[]
     {
         double r = 0, g = 0, b = 0;
 
-        if (SpectralBand.VisibleSpectralBand.Contains(wavelength))
+        if (wavelength.IsVisible)
         {
             double l = wavelength.Nanometer.Value;
             double t;

@@ -833,11 +833,14 @@ public static partial class Extensions
         HDRColor color = new();
 
         if (spectrum is SparseSpectrum sparse)
-            ; // TODO
-
-        foreach (KeyValuePair<Wavelength, double> kvp in Intensities)
-            if (kvp.Key.IsVisible && kvp.Key >= lowest && kvp.Key <= highest)
-                color += kvp.Value * kvp.Key.ToColor();
+        {
+            foreach ((Wavelength wavelength, double intensity) in sparse.Intensities)
+                if (band.Contains(wavelength))
+                    color += intensity * wavelength.ToColor(α);
+        }
+        else
+            foreach (Wavelength wavelength in band.GetWavelengths(stepsize))
+                color += spectrum[wavelength] * wavelength.ToColor(α);
 
         return color;
     }
