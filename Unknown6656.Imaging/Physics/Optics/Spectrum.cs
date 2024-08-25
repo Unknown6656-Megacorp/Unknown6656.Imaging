@@ -340,3 +340,16 @@ public class ContinuousSpectrum(Func<Wavelength, double> intensity_function)
 
     public static implicit operator ContinuousSpectrum(Func<Wavelength, double> intensity_function) => new(intensity_function);
 }
+
+
+// TODO : eye response spectrum
+// TODO : simulate color blindness transformation
+//      - protanopia
+//      - deuteranopia
+//      - tritanopia
+//      - protanomaly
+//      - deutanomaly
+//      - tritanomaly
+// TODO : color harmony
+// TODO : white balance correction
+// TODO : gamma correction
