@@ -1135,9 +1135,7 @@ var members = new string[]
     @"public readonly (double L, double a, double b) CIELAB94 => ToCIELAB94();",
     @"public (double Hue, double Saturation, double Luminosity) HSL
     {
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         readonly get => ToHSL();
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         set
         {
             $type color = FromHSL(value.Hue, value.Saturation, value.Luminosity);
@@ -1146,9 +1144,7 @@ var members = new string[]
     }",
     @"public (double Hue, double Saturation, double Value) HSV
     {
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         readonly get => ToHSV();
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         set
         {
             $type color = FromHSV(value.Hue, value.Saturation, value.Value);
@@ -1157,9 +1153,7 @@ var members = new string[]
     }",
     @"public (double Hue, double Chroma, double Luma) HCL
     {
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         readonly get => ToHCL();
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         set
         {
             $type color = FromHCL(value.Hue, value.Chroma, value.Luma);
@@ -1168,9 +1162,7 @@ var members = new string[]
     }",
     @"public (double Hue, double Chroma, double Y) HCY
     {
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         readonly get => ToHCY();
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         set
         {
             $type color = FromHCY(value.Hue, value.Chroma, value.Y);
@@ -1179,9 +1171,7 @@ var members = new string[]
     }",
     @"public (double C, double M, double Y, double K) CMYK
     {
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         readonly get => ToCMYK();
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         set
         {
             $type color = FromCMYK(value.C, value.M, value.Y, value.K);
@@ -1191,21 +1181,16 @@ var members = new string[]
     @"public (double x, double y) NormalizedChromaticity => ToNormalizedChromaticity();",
     @"public (double X, double Y, double Z) XYZ
     {
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         readonly get => ToXYZ();
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         set
         {
             $type color = FromXYZ(value.X, value.Y, value.Z);
             ($R, $G, $B) = (color.$R, color.$G, color.$B);
         }
     }",
-
     @"public (double Y, double U, double V) YUV
     {
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         readonly get => ToYUV();
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         set
         {
             $type color = FromYUV(value.Y, value.U, value.V);
@@ -1214,20 +1199,16 @@ var members = new string[]
     }",
     @"public (double Y, double I, double Q) YIQ
     {
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         readonly get => ToYIQ();
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         set
         {
             $type color = FromYIQ(value.Y, value.I, value.Q);
             ($R, $G, $B) = (color.$R, color.$G, color.$B);
         }
     }",
-    @"public double BlackbodyTemperature
+    @"public Temperature BlackbodyTemperature
     {
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         readonly get => ToBlackbodyTemperature();
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         set
         {
             $type color = FromBlackbodyTemperature(value);
@@ -1249,7 +1230,6 @@ var members = new string[]
     }",
     @"public readonly $type[] Analogous
     {
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         get
         {
             $type copy = this;
@@ -1259,7 +1239,6 @@ var members = new string[]
     }",
     @"public readonly $type[] Neutrals
     {
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         get
         {
             $type copy = this;
@@ -1484,12 +1463,11 @@ var members = new string[]
             K
         );
     }",
-    @"public readonly DiscreteSpectrum ToSpectrum()
+    @"public readonly Spectrum ToSpectrum()
     {
         $type color = this;
-        Dictionary<Wavelength, double> intensities = Wavelength.VisibleWavelengths.ToDictionary(LINQ.id, w => color.GetIntensity(w, 0));
 
-        return new(intensities);
+        return SpectralBand.VisibleSpectralBand * ((Wavelength λ) => color.GetIntensity(λ, 0));
     }",
     @"public readonly double GetIntensity(Wavelength wavelength, double tolerance = 1e-1)
     {
@@ -1550,12 +1528,13 @@ var members = new string[]
 
         return (H, C, L);
     }",
-    @"public readonly double ToBlackbodyTemperature()
+    @"public readonly Temperature ToBlackbodyTemperature()
     {
         (double x, double y) = ToNormalizedChromaticity();
         double n = (x - .332) / (.1858 - y);
+        double kelvin = ((449 * n + 3525) * n + 6823.3) * n + 5520.33;
 
-        return ((449 * n + 3525) * n + 6823.3) * n + 5520.33;
+        return kelvin.Kelvin();
     }",
     @"public readonly ConsoleColor ToConsoleColor(ConsoleColorScheme color_scheme)
     {
@@ -1916,14 +1895,14 @@ var members = new string[]
         (1 - Y) * (1 - K),
         α
     );",
-    @"public static $type FromWavelength(in Wavelength wavelength) => FromWavelength(in wavelength, 1);",
-    @"public static $type FromWavelength(in Wavelength wavelength, double α)
+    @"public static $type FromWavelength(Wavelength wavelength) => FromWavelength(wavelength, 1);",
+    @"public static $type FromWavelength(Wavelength wavelength, double α)
     {
         double r = 0, g = 0, b = 0;
 
-        if (wavelength.IsVisible)
+        if (SpectralBand.VisibleSpectralBand.Contains(wavelength))
         {
-            double l = wavelength.InNanometers;
+            double l = wavelength.Nanometer.Value;
             double t;
 
             if (l < 410)
@@ -1985,56 +1964,53 @@ var members = new string[]
     @"public static $type FromSpectrum(Spectrum spectrum) => FromSpectrum(spectrum, 1);",
     @"public static $type FromSpectrum(Spectrum spectrum, double α)
     {
-        Vector4 color = Vector4.Zero;
+        Vector3 color = Vector3.Zero;
         double total = 0;
 
-        IEnumerable<(Wavelength w, double i)> intensities;
-
-        if (spectrum is DiscreteSpectrum discrete)
-            intensities = discrete.Intensities.FromDictionary();
+        if (spectrum is SparseSpectrum discrete)
+            foreach ((Wavelength wavelength, double intensity) in discrete.Intensities)
+            {
+                color += intensity * (Vector3)FromWavelength(wavelength);
+                total += intensity;
+            }
         else
-        {
-            List<(Wavelength, double)> list = new();
+            for (int λ = 380; λ <= 750; λ++)
+            {
+                Wavelength wavelength = new Nanometer(λ);
+                double intensity = spectrum.GetIntensity(wavelength);
 
-            foreach (Wavelength wavelength in Wavelength.VisibleWavelengths)
-                list.Add((wavelength, spectrum.GetIntensity(wavelength)));
-
-            intensities = list;
-        }
-
-        foreach ((Wavelength wavelength, double intensity) in intensities)
-        {
-            color += intensity * (Vector4)FromWavelength(in wavelength);
-            total += intensity;
-        }
+                color += intensity * (Vector3)FromWavelength(wavelength);
+                total += intensity;
+            }
 
         color /= total;
 
         return new(color.X, color.Y, color.Z, α);
     }",
-    @"public static $type FromBlackbodyTemperature(double temperature) => FromBlackbodyTemperature(temperature, 1);",
-    @"public static $type FromBlackbodyTemperature(double temperature, double α)
+    @"public static $type FromBlackbodyTemperature(Temperature temperature) => FromBlackbodyTemperature(temperature, 1);",
+    @"public static $type FromBlackbodyTemperature(Temperature temperature, double α)
     {
-        double x = temperature / 1000;
+        double K = temperature.Kelvin.Value;
+        double x = K / 1000;
         double x2 = x * x;
         double x3 = x2 * x;
-        double x4 = x3 * x;
+        double x4 = x2 * x2;
         double x5 = x4 * x;
         double R, G, B;
 
-        if (temperature <= 6600)
+        if (K <= 6600)
             R = 1;
         else
             R = .0002889 * x5 - .01258 * x4 + .2148 * x3 - 1.776 * x2 + 6.907 * x - 8.723;
 
-        if (temperature <= 6600)
+        if (K <= 6600)
             G = -4.593e-5 * x5 + .001424 * x4 - .01489 * x3 + .0498 * x2 + .1669 * x - .1653;
         else
             G = -1.308e-7 * x5 + 1.745e-5 * x4 - .0009116 * x3 + .02348 * x2 - .3048 * x + 2.159;
 
-        if (temperature <= 2000)
+        if (K <= 2000)
             B = 0;
-        else if (temperature < 6600)
+        else if (K < 6600)
             B = 1.764e-5 * x5 + .0003575 * x4 - .01554 * x3 + .1549 * x2 - .3682 * x + .2386;
         else
             B = 1;
@@ -2081,7 +2057,7 @@ var members = new string[]
     @"public static implicit operator $type(Vector4 color) => new(color.X, color.Y, color.Z, color.W);",
     @"public static implicit operator $type((Vector3 color, Scalar α) rgba) => new(rgba.color.X, rgba.color.Y, rgba.color.Z, rgba.α);",
     @"public static implicit operator $type((Vector3 color, double α) rgba) => new(rgba.color.X, rgba.color.Y, rgba.color.Z, rgba.α);",
-    @"public static implicit operator $type(in Wavelength wavelength) => FromWavelength(in wavelength);",
+    @"public static implicit operator $type(Wavelength wavelength) => FromWavelength(wavelength);",
 };
 var types = new (string name, Func<string, string> proc)[]
 {
@@ -2103,6 +2079,8 @@ using System.Linq;
 using System;
 
 using Unknown6656.Physics.Optics;
+using Unknown6656.Units.Euclidean;
+using Unknown6656.Units.Thermodynamics;
 using Unknown6656.Mathematics.LinearAlgebra;
 using Unknown6656.Mathematics.Analysis;
 using Unknown6656.Mathematics;

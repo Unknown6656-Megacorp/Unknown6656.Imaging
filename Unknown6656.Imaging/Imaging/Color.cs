@@ -1,4 +1,4 @@
-using System.Runtime.CompilerServices;
+﻿using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Text.RegularExpressions;
 using System.Collections.Generic;
@@ -6,6 +6,8 @@ using System.Drawing;
 using System;
 
 using Unknown6656.Physics.Optics;
+using Unknown6656.Units.Euclidean;
+using Unknown6656.Units.Thermodynamics;
 using Unknown6656.Mathematics.LinearAlgebra;
 using Unknown6656.Mathematics.Numerics;
 using Unknown6656.Mathematics;
@@ -14,6 +16,9 @@ using Unknown6656.Generics;
 namespace Unknown6656.Imaging;
 
 
+/// <summary>
+/// Represents an abstract color information structure.
+/// </summary>
 public partial interface IColor
 {
     internal static Dictionary<ConsoleColorScheme, Dictionary<ConsoleColor, uint>> ConsoleColorSchemes { get; } = new()
@@ -58,60 +63,149 @@ public partial interface IColor
         }
     };
 
-    /// <summary>
-    /// The average of all color channels as a value in the range of [0..1].
-    /// </summary>
-    double Average { get; }
-    double CIEGray { get; }
-    (double L, double a, double b) CIELAB94 { get; }
-    (double Hue, double Saturation, double Luminosity) HSL { get; }
-    (double Hue, double Saturation, double Value) HSV { get; }
-    (double C, double M, double Y, double K) CMYK { get; }
-    (double Y, double U, double V) YUV { get; }
-    (double Y, double I, double Q) YIQ { get; }
-
-
-    Scalar CIELAB94DistanceTo(IColor other);
 
     /// <summary>
-    /// Exports the HSL-color channels.
+    /// The arithmetic average of all color channels as a value in the range of [0..1].
     /// </summary>
-    (double H, double S, double L) ToHSL();
+    public double Average { get; }
 
-    (double H, double S, double V) ToHSV();
+    /// <summary>
+    /// The color's gray point in the range of [0..1] according to the CIE L*a*b* 1994 color model.
+    /// </summary>
+    public double CIEGray { get; }
 
-    (double R, double G, double B) ToRGB();
+    /// <summary>
+    /// Converts the current color instance to the CIE 1994 L*a*b* color space.
+    /// <para/>
+    /// See <see href="https://en.wikipedia.org/wiki/CIELAB_color_space"/> for more information.
+    /// </summary>
+    public (double L, double a, double b) CIELAB94 { get; }
 
-    uint ToARGB32();
+    /// <summary>
+    /// Converts the current color instance to the HSL color space.
+    /// <para/>
+    /// See <see href="https://en.wikipedia.org/wiki/HSL_and_HSV"/> for more information.
+    /// </summary>
+    public (double Hue, double Saturation, double Luminosity) HSL { get; }
 
-    (double L, double a, double b) ToCIELAB94();
+    /// <summary>
+    /// Converts the current color instance to the HSV color space.
+    /// <para/>
+    /// See <see href="https://en.wikipedia.org/wiki/HSL_and_HSV"/> for more information.
+    /// </summary>
+    public (double Hue, double Saturation, double Value) HSV { get; }
 
-    (double C, double M, double Y, double K) ToCMYK();
+    /// <summary>
+    /// Converts the current color instance to the CMYK color space.
+    /// <para/>
+    /// See <see href="https://en.wikipedia.org/wiki/CMYK_color_model"/> for more information.
+    /// </summary>
+    public (double C, double M, double Y, double K) CMYK { get; }
 
-    (double Y, double I, double Q) ToYIQ();
+    /// <summary>
+    /// Converts the current color instance to the Y'UV color space.
+    /// <para/>
+    /// See <see href="https://en.wikipedia.org/wiki/Y%E2%80%B2UV"/> for more information.
+    /// </summary>
+    public (double Y, double U, double V) YUV { get; }
 
-    (double Y, double U, double V) ToYUV();
+    /// <summary>
+    /// Converts the current color instance to the YIQ color space.
+    /// <para/>
+    /// See <see href="https://en.wikipedia.org/wiki/YIQ"/> for more information.
+    /// </summary>
+    public (double Y, double I, double Q) YIQ { get; }
 
-    (double Y, double Cb, double Cr) ToYCbCr();
 
-    DiscreteSpectrum ToSpectrum();
+    /// <summary>
+    /// Computes the distance between the current color instance and the given color in the CIE 1994 L*a*b* color space.
+    /// </summary>
+    public Scalar CIELAB94DistanceTo(IColor other);
 
-    double GetIntensity(Wavelength wavelength, double tolerance = 1e-1);
+    /// <summary>
+    /// Converts the current color instance to the HSL color space.
+    /// <para/>
+    /// See <see href="https://en.wikipedia.org/wiki/HSL_and_HSV"/> for more information.
+    /// </summary>
+    public (double H, double S, double L) ToHSL();
+
+    /// <summary>
+    /// Converts the current color instance to the HSV color space.
+    /// <para/>
+    /// See <see href="https://en.wikipedia.org/wiki/HSL_and_HSV"/> for more information.
+    /// </summary>
+    public (double H, double S, double V) ToHSV();
+
+    /// <summary>
+    /// Converts the current color instance to the RGB color space.
+    /// <para/>
+    /// See <see href="https://en.wikipedia.org/wiki/RGB_color_model"/> for more information.
+    /// </summary>
+    public (double R, double G, double B) ToRGB();
+
+    /// <summary>
+    /// Converts the current color instance to the ARGB32 color space, where each color channel is represented by an unsigned 8-bit integer.
+    /// The alpha channel is stored in the most significant byte, followed by the red, green, and blue channels.
+    /// </summary>
+    public uint ToARGB32();
+
+    /// <summary>
+    /// Converts the current color instance to the CIE 1994 L*a*b* color space.
+    /// <para/>
+    /// See <see href="https://en.wikipedia.org/wiki/CIELAB_color_space"/> for more information.
+    /// </summary>
+    public (double L, double a, double b) ToCIELAB94();
+
+    /// <summary>
+    /// Converts the current color instance to the CMYK color space.
+    /// <para/>
+    /// See <see href="https://en.wikipedia.org/wiki/CMYK_color_model"/> for more information.
+    /// </summary>
+    public (double C, double M, double Y, double K) ToCMYK();
+
+    /// <summary>
+    /// Converts the current color instance to the YIQ color space.
+    /// <para/>
+    /// See <see href="https://en.wikipedia.org/wiki/YIQ"/> for more information.
+    /// </summary>
+    public (double Y, double I, double Q) ToYIQ();
+
+    /// <summary>
+    /// Converts the current color instance to the Y'UV color space.
+    /// <para/>
+    /// See <see href="https://en.wikipedia.org/wiki/Y%E2%80%B2UV"/> for more information.
+    /// </summary>
+    public (double Y, double U, double V) ToYUV();
+
+    /// <summary>
+    /// Converts the current color instance to the Y'Cr/Cb color space.
+    /// <para/>
+    /// See <see href="https://en.wikipedia.org/wiki/YCbCr"/> for more information.
+    /// </summary>
+    public (double Y, double Cb, double Cr) ToYCbCr();
+
+    public Spectrum ToSpectrum();
+
+    public double GetIntensity(Wavelength wavelength, double tolerance = 1e-1);
 }
 
+/// <summary>
+/// Represents an abstract color information structure.
+/// </summary>
+/// <typeparam name="Color">The color's type.</typeparam>
 public interface IColor<Color>
     : IColor
     where Color : IColor<Color>
 {
-    (Color @this, Color Triadic1, Color Triadic2) Triadic { get; }
-    Color[] Analogous { get; }
-    Color[] Neutrals { get; }
-    Color Normalized { get; }
-    Color Complement { get; }
+    public (Color @this, Color Triadic1, Color Triadic2) Triadic { get; }
+    public Color[] Analogous { get; }
+    public Color[] Neutrals { get; }
+    public Color Normalized { get; }
+    public Color Complement { get; }
 
-    Color Rotate(Scalar φ);
-    Color CorrectGamma(Scalar gamma);
-    Color[] GetNeutrals(Scalar φ_step, int count);
+    public Color Rotate(Scalar φ);
+    public Color CorrectGamma(Scalar gamma);
+    public Color[] GetNeutrals(Scalar φ_step, int count);
 
     /// <summary>
     /// Converts the given HSL-color to a <typeparamref name="Color"/>-instance.
@@ -120,7 +214,7 @@ public interface IColor<Color>
     /// <param name=""S"">The HSL-color's saturation channel [0..1]</param>
     /// <param name=""L"">The HSL-color's luminosity channel [0..1]</param>
     /// <returns></returns>
-    static abstract Color FromHSL(double H, double S, double L);
+    public static abstract Color FromHSL(double H, double S, double L);
 
     /// <summary>
     /// Converts the given HSL-color to a <typeparamref name="Color"/>-instance.
@@ -130,59 +224,64 @@ public interface IColor<Color>
     /// <param name=""L"">The HSL-color's luminosity channel [0..1]</param>
     /// <param name=""α"">The color's α-channel (opacity) [0..1]</param>
     /// <returns></returns>
-    static abstract Color FromHSL(double H, double S, double L, double α);
+    public static abstract Color FromHSL(double H, double S, double L, double α);
 
-    static abstract Color FromHSV(double H, double S, double V);
+    public static abstract Color FromHSV(double H, double S, double V);
 
-    static abstract Color FromHSV(double H, double S, double V, double α);
+    public static abstract Color FromHSV(double H, double S, double V, double α);
 
-    static abstract Color FromRGB(double R, double G, double B);
+    public static abstract Color FromRGB(double R, double G, double B);
 
-    static abstract Color FromRGB(double R, double G, double B, double α);
+    public static abstract Color FromRGB(double R, double G, double B, double α);
 
-    static abstract Color FromARGB32(int ARGB);
+    public static abstract Color FromARGB32(int ARGB);
 
-    static abstract Color FromARGB32(uint ARGB);
+    public static abstract Color FromARGB32(uint ARGB);
 
-    static abstract Color FromCIELAB94(double L, double a, double b);
+    public static abstract Color FromCIELAB94(double L, double a, double b);
 
-    static abstract Color FromCIELAB94(double L, double a, double b, double α);
+    public static abstract Color FromCIELAB94(double L, double a, double b, double α);
 
-    static abstract Color FromCMYK(double C, double M, double Y, double K);
+    public static abstract Color FromCMYK(double C, double M, double Y, double K);
 
-    static abstract Color FromCMYK(double C, double M, double Y, double K, double α);
+    public static abstract Color FromCMYK(double C, double M, double Y, double K, double α);
 
-    static abstract Color FromYIQ(double Y, double I, double Q);
+    public static abstract Color FromYIQ(double Y, double I, double Q);
 
-    static abstract Color FromYIQ(double Y, double I, double Q, double α);
+    public static abstract Color FromYIQ(double Y, double I, double Q, double α);
 
-    static abstract Color FromYUV(double Y, double U, double V);
+    public static abstract Color FromYUV(double Y, double U, double V);
 
-    static abstract Color FromYUV(double Y, double U, double V, double α);
+    public static abstract Color FromYUV(double Y, double U, double V, double α);
 
-    static abstract Color FromYCbCr(double Y, double Cb, double Cr);
+    public static abstract Color FromYCbCr(double Y, double Cb, double Cr);
 
-    static abstract Color FromYCbCr(double Y, double Cb, double Cr, double α);
-
-    /// <summary>
-    /// Returns the <typeparamref name="Color"/> associated with the given black body temperature (in Kelvin).
-    /// </summary>
-    /// <param name=""temperature"">The black body temperature (in Kelvin).</param>
-    /// <returns><typeparamref name="Color"/></returns>
-    static abstract Color FromBlackbodyTemperature(double temperature);
+    public static abstract Color FromYCbCr(double Y, double Cb, double Cr, double α);
 
     /// <summary>
-    /// Returns the <typeparamref name="Color"/> associated with the given black body temperature (in Kelvin).
+    /// Returns the <typeparamref name="Color"/> associated with the given black body temperature.
     /// </summary>
-    /// <param name=""temperature"">The black body temperature (in Kelvin).</param>
+    /// <param name=""temperature"">The black body temperature.</param>
     /// <returns><typeparamref name="Color"/></returns>
-    static abstract Color FromBlackbodyTemperature(double temperature, double α);
+    public static abstract Color FromBlackbodyTemperature(Temperature temperature);
 
-    static abstract implicit operator Color(System.Drawing.Color color);
+    /// <summary>
+    /// Returns the <typeparamref name="Color"/> associated with the given black body temperature.
+    /// </summary>
+    /// <param name=""temperature"">The black body temperature.</param>
+    /// <returns><typeparamref name="Color"/></returns>
+    public static abstract Color FromBlackbodyTemperature(Temperature temperature, double α);
 
-    static abstract implicit operator System.Drawing.Color(Color color);
+    public static abstract implicit operator Color(System.Drawing.Color color);
+
+    public static abstract implicit operator System.Drawing.Color(Color color);
 }
 
+/// <summary>
+/// Represents an abstract color information structure in the ARGB color space.
+/// </summary>
+/// <typeparam name="Color">The color's type.</typeparam>
+/// <typeparam name="Channel">The color's channel type.</typeparam>
 public interface IColor<Color, Channel>
     : IColor<Color>
     where Color : unmanaged, IColor<Color, Channel>
@@ -191,29 +290,37 @@ public interface IColor<Color, Channel>
     /// <summary>
     /// The color's red channel.
     /// </summary>
-    Channel R { get; }
+    public Channel R { get; }
+
     /// <summary>
     /// The color's green channel.
     /// </summary>
-    Channel G { get; }
+    public Channel G { get; }
+
     /// <summary>
     /// The color's blue channel.
     /// </summary>
-    Channel B { get; }
+    public Channel B { get; }
+
     /// <summary>
     /// The color's alpha channel.
     /// </summary>
-    Channel A { get; }
+    public Channel A { get; }
+
+    /// <summary>
+    /// The color's channel value for the given <see cref="ColorChannel"/>.
+    /// </summary>
+    /// <param name="channel">The color channel.</param>
     public Channel this[ColorChannel channel] { get; }
 
-    //void Deconstruct(out Channel r, out Channel g, out Channel b);
-    //void Deconstruct(out Channel r, out Channel g, out Channel b, out Channel α);
+    //public void Deconstruct(out Channel r, out Channel g, out Channel b);
+    //public void Deconstruct(out Channel r, out Channel g, out Channel b, out Channel α);
 
 
-    double DistanceTo(Color other, ColorEqualityMetric metric);
-    bool Equals(Color other, ColorEqualityMetric metric);
-    bool Equals(Color other, ColorEqualityMetric metric, double tolerance);
-    bool Equals(Color other, ColorTolerance tolerance);
+    public double DistanceTo(Color other, ColorEqualityMetric metric);
+    public bool Equals(Color other, ColorEqualityMetric metric);
+    public bool Equals(Color other, ColorEqualityMetric metric, double tolerance);
+    public bool Equals(Color other, ColorTolerance tolerance);
 }
 
 /// <summary>
@@ -302,6 +409,8 @@ public partial struct HDRColor
 
     public static explicit operator HDRColor(uint argb) => FromARGB32(argb);
 }
+
+// TODO : this structure will hugely benefit from C#'s 'shapes' feature
 
 /// <summary>
 /// Represents a native pixel 32-bit color information structure.
@@ -745,7 +854,7 @@ public enum ColorEqualityMetric
     Saturation,
     Luminance,
     CIEGray,
-    CIALAB94,
+    CIELAB94,
     Average,
     EucledianRGBLength,
     EucledianRGBALength,
