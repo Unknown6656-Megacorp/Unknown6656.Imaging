@@ -10,6 +10,7 @@ using System.Drawing;
 using System.Linq;
 using System;
 
+using Unknown6656.Physics.Optics;
 using Unknown6656.Mathematics.Statistics;
 using Unknown6656.Generics;
 
@@ -1336,6 +1337,8 @@ public class ColorPalette
     public static implicit operator ColorPalette(RGBAColor[] palette) => new(palette);
 
     public static implicit operator ColorPalette(DiscreteColorMap color_map) => color_map.Colors;
+
+    public static implicit operator ColorPalette(SparseSpectrum spectrum) => spectrum.ToColorPalette();
 
     public static ColorPalette operator +(ColorPalette palette, RGBAColor color) => palette + new ColorPalette(color);
 

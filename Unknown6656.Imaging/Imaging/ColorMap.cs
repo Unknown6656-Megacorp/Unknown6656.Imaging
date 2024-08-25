@@ -4,9 +4,10 @@ using System.Linq;
 using System;
 
 using Unknown6656.Physics.Optics;
+using Unknown6656.Units.Thermodynamics;
 using Unknown6656.Mathematics.LinearAlgebra;
-using Unknown6656.Generics;
 using Unknown6656.Mathematics;
+using Unknown6656.Generics;
 
 namespace Unknown6656.Imaging;
 
@@ -18,15 +19,15 @@ public abstract class ColorMap
 
     public static DiscreteColorMap LegacyBlackbodyHeat { get; } = Uniform(0xf000, 0xff88, 0xffb7, 0xffff, 0xf9ef, 0xf6cf);
 
-    public static DiscreteColorMap NarrowBlackbodyHeat { get; } = new(Enumerable.Range(0, 1000).Select(i => RGBAColor.FromBlackbodyTemperature(7 * i)));
+    public static DiscreteColorMap NarrowBlackbodyHeat { get; } = new(Enumerable.Range(0, 1000).Select(i => RGBAColor.FromBlackbodyTemperature(new Kelvin(7 * i))));
 
-    public static DiscreteColorMap ExtendedBlackbodyHeat { get; } = new(Enumerable.Range(0, 1000).Select(i => RGBAColor.FromBlackbodyTemperature(14 * i)));
+    public static DiscreteColorMap ExtendedBlackbodyHeat { get; } = new(Enumerable.Range(0, 1000).Select(i => RGBAColor.FromBlackbodyTemperature(new Kelvin(14 * i))));
 
-    public static DiscreteColorMap BlackbodyHeat { get; } = new(Enumerable.Range(0, 1000).Select(i => RGBAColor.FromBlackbodyTemperature(11 * i)));
+    public static DiscreteColorMap BlackbodyHeat { get; } = new(Enumerable.Range(0, 1000).Select(i => RGBAColor.FromBlackbodyTemperature(new Kelvin(11 * i))));
 
     public static ContinuousColorMap HueMap { get; } = new(s => RGBAColor.FromHSL(s * Scalar.Tau, 1, 1));
 
-    public static ContinuousColorMap VisibleSpectrum { get; } = new(s => new Wavelength(Wavelength.HighestVisibleWavelength.InNanometers - (s.Clamp() * (Wavelength.HighestVisibleWavelength - Wavelength.LowestVisibleWavelength).InNanometers)).ToColor());
+    public static ContinuousColorMap VisibleSpectrum { get; } = new(s => SpectralBand.VisibleSpectralBand[(double)s].ToColor());
 
     public static DiscreteColorMap Terrain { get; } = new(
         (0, (.2, .2, .6)),
@@ -1136,6 +1137,8 @@ public class DiscreteColorMap
     public static implicit operator DiscreteColorMap(RGBAColor[] colors) => Uniform(colors);
 
     public static explicit operator ColorPalette(DiscreteColorMap map) => map.ToColorPalette();
+
+    public static implicit operator DiscreteColorMap(SparseSpectrum spectrum) => spectrum.ToColorMap();
 }
 
 public sealed record ColorTolerance(double Tolerance, ColorEqualityMetric Metric)
