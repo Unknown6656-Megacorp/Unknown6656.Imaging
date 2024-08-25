@@ -9,7 +9,7 @@ using Unknown6656.Mathematics;
 using Unknown6656.Generics;
 using Unknown6656.Imaging;
 
-namespace Unknown6656.Physics.Optics;
+namespace ___legacy___.Unknown6656.Physics.Optics;
 
 
 /// <summary>

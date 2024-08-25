@@ -14,7 +14,7 @@
 
 using System.Collections.Generic;
 
-namespace Unknown6656.Physics.Optics;
+namespace ___legacy___.Unknown6656.Physics.Optics;
 
 
 public abstract partial class Spectrum
