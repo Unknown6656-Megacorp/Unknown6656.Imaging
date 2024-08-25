@@ -3,6 +3,7 @@ using System.Runtime.InteropServices;
 using System.Text.RegularExpressions;
 using System.Collections.Generic;
 using System.Drawing;
+using System.Linq;
 using System;
 
 using Unknown6656.Physics.Optics;
@@ -809,6 +810,58 @@ public unsafe partial struct RGBAColor
     public static implicit operator RGBAColor((byte r, byte g, byte b, byte α) color) => new(color.r, color.g, color.b, color.α);
 
     #endregion
+}
+
+public static partial class Extensions
+{
+    public static HDRColor ToColor(this Wavelength wavelength) => HDRColor.FromWavelength(wavelength);
+
+    public static HDRColor ToColor(this Wavelength wavelength, double α) => HDRColor.FromWavelength(wavelength, α);
+
+    public static RGBAColor ToRGBAColor(this Wavelength wavelength) => RGBAColor.FromWavelength(wavelength);
+
+    public static RGBAColor ToRGBAColor(this Wavelength wavelength, double α) => RGBAColor.FromWavelength(wavelength, α);
+
+    public static HDRColor ToVisibleColor(this Spectrum spectrum) => ToVisibleColor(spectrum, 1);
+
+    public static HDRColor ToVisibleColor(this Spectrum spectrum, double α) => ToVisibleColor(spectrum, 1d.Nanometer(), α);
+
+    public static HDRColor ToVisibleColor(this Spectrum spectrum, Wavelength stepsize, double α) => ToColor(spectrum, SpectralBand.VisibleSpectralBand, stepsize, α);
+
+    public static HDRColor ToColor(this Spectrum spectrum, SpectralBand band, Wavelength stepsize, double α)
+    {
+        HDRColor color = new();
+
+        if (spectrum is SparseSpectrum sparse)
+            ; // TODO
+
+        foreach (KeyValuePair<Wavelength, double> kvp in Intensities)
+            if (kvp.Key.IsVisible && kvp.Key >= lowest && kvp.Key <= highest)
+                color += kvp.Value * kvp.Key.ToColor();
+
+        return color;
+    }
+
+    public static ColorPalette ToColorPalette(this SparseSpectrum spectrum) => new(spectrum.Intensities.Select(t => (RGBAColor)t.Wavelength.ToColor()));
+
+    public static ContinuousColorMap ToVisibleColorMap(this Spectrum spectrum) => ToColorMap(spectrum, SpectralBand.VisibleSpectralBand);
+
+    public static ContinuousColorMap ToColorMap(this Spectrum spectrum, Wavelength lowest, Wavelength highest) => ToColorMap(spectrum, (lowest, highest));
+
+    public static ContinuousColorMap ToColorMap(this Spectrum spectrum, SpectralBand band) => new(s =>
+    {
+        Wavelength wavelength = band.GetWavelengthAt(s);
+
+        return spectrum[wavelength] * wavelength.ToRGBAColor();
+    });
+
+    public static DiscreteColorMap ToColorMap(this SparseSpectrum spectrum)
+    {
+        Wavelength[] lines = [.. spectrum.SpectralLines.Order()];
+        Wavelength range = spectrum.WavelengthRange;
+
+        return new(spectrum.Intensities.ToArray(t => (new Scalar((t.Wavelength - lines[0]) / range), t.Wavelength.ToRGBAColor())));
+    }
 }
 
 [Flags]
