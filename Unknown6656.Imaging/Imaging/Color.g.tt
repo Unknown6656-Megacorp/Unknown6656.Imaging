@@ -1263,6 +1263,14 @@ var members = new string[]
             return copy;
         }
     }",
+    @"public $type(IColor color)
+        : this(color, 1)
+    {
+    }",
+    @"public $type(IColor color, double α)
+        : this(color.ToRGB(), α)
+    {
+    }",
     @"public $type(uint argb)
         : this((int)argb)
     {
