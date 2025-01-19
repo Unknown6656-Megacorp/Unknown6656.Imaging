@@ -57,12 +57,13 @@
         <None Remove="old\**" />
     </ItemGroup>
     <ItemGroup>
-        <PackageReference Include="System.Drawing.Common" Version="8.0.8" />
+        <PackageReference Include="System.Drawing.Common" Version="9.0.1" />
         <PackageReference Include="System.Drawing.Primitives" Version="4.3.0" />
-        <PackageReference Include="Unknown6656.Runtime" Version="1.0.1" />
-        <PackageReference Include="Unknown6656.Mathematics" Version="1.0.1" />
-        <PackageReference Include="Unknown6656.Physics" Version="0.0.7" />
-        <PackageReference Include="Unknown6656.Units.F64" Version="0.0.7" />
+        <PackageReference Include="Unknown6656.Runtime" Version="1.1.2" />
+        <PackageReference Include="Unknown6656.Mathematics" Version="1.0.2" />
+        <PackageReference Include="Unknown6656.Physics" Version="0.1.0" />
+        <PackageReference Include="Unknown6656.Serialization" Version="1.0.3" />
+        <PackageReference Include="Unknown6656.Units.F64" Version="0.1.0" />
     </ItemGroup>
     <ItemGroup>
         <Service Include="{508349b6-6b84-4df5-91f0-309beebad82d}" />
