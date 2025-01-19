@@ -1,12 +1,10 @@
-﻿using System.Runtime.CompilerServices;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
 using System;
 
 using Unknown6656.Physics.Optics;
 using Unknown6656.Units.Thermodynamics;
 using Unknown6656.Mathematics.LinearAlgebra;
-using Unknown6656.Mathematics;
 using Unknown6656.Generics;
 
 namespace Unknown6656.Imaging;

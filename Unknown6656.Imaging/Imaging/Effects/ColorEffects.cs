@@ -8,6 +8,7 @@ using System;
 
 using Unknown6656.Mathematics.LinearAlgebra;
 using Unknown6656.Mathematics.Numerics;
+using Unknown6656.Serialization;
 
 using Random = Unknown6656.Mathematics.Numerics.Random;
 

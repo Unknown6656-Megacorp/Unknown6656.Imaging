@@ -1,17 +1,12 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
+using System.Runtime.Versioning;
 using System.Drawing.Imaging;
 using System.Drawing;
-using System.Linq;
-using System.Runtime.Versioning;
-using System.Text;
-using System.Threading.Tasks;
+using System.IO;
+using System;
 
 using Unknown6656.Imaging;
-
 using Unknown6656.Runtime;
-using System.Runtime.CompilerServices;
-using System.IO;
 
 namespace Unknown6656.Serialization;
 
@@ -69,5 +64,4 @@ public static unsafe class DataStreamExtensions
 
         return FromStream(ms);
     }
-
 }

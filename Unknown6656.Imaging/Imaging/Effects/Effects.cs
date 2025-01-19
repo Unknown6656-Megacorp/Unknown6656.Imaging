@@ -3,17 +3,13 @@
 
 using System.Runtime.CompilerServices;
 using System.Runtime.Versioning;
-using System.Collections.Generic;
 using System.Threading.Tasks;
 using System.Drawing;
-using System.Linq;
 using System;
 
 using Unknown6656.Mathematics.LinearAlgebra;
 using Unknown6656.Mathematics.Analysis;
 using Unknown6656.Mathematics.Numerics;
-using Unknown6656.Mathematics;
-using Unknown6656.Runtime;
 
 using Random = Unknown6656.Mathematics.Numerics.Random;
 

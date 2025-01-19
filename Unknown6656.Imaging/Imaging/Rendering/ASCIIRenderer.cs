@@ -1,8 +1,6 @@
 ﻿using System.IO;
 using System;
 
-using Unknown6656.Controls.Console;
-
 namespace Unknown6656.Imaging.Rendering;
 
 

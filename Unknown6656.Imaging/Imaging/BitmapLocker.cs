@@ -1,11 +1,8 @@
-﻿using System.Runtime.CompilerServices;
-using System.Runtime.Versioning;
+﻿using System.Runtime.Versioning;
 using System.Threading.Tasks;
 using System.Drawing.Imaging;
 using System.Drawing;
 using System;
-
-using Unknown6656.Runtime;
 
 namespace Unknown6656.Imaging;
 

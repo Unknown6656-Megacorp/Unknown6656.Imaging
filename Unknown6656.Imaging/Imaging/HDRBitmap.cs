@@ -3,7 +3,6 @@ using System.Drawing.Imaging;
 using System.Drawing;
 
 using Unknown6656.Mathematics.LinearAlgebra;
-using Unknown6656.Runtime;
 
 namespace Unknown6656.Imaging;
 

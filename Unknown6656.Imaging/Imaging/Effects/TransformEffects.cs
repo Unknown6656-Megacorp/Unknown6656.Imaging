@@ -1,8 +1,6 @@
 ﻿using System.Threading.Tasks;
 using System.Drawing.Drawing2D;
-using System.Drawing.Imaging;
 using System.Drawing;
-using System.Linq;
 using System;
 
 using Unknown6656.Mathematics.LinearAlgebra;

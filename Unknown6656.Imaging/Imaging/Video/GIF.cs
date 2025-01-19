@@ -5,6 +5,7 @@ using System.Linq;
 using System.IO;
 using System;
 
+using Unknown6656.Serialization;
 using Unknown6656.Generics;
 
 namespace Unknown6656.Imaging.Video;

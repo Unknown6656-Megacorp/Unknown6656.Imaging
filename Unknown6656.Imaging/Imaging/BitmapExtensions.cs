@@ -17,8 +17,8 @@ using Unknown6656.Mathematics.Analysis;
 using Unknown6656.Mathematics.Numerics;
 using Unknown6656.Imaging.Plotting;
 using Unknown6656.Imaging.Effects;
+using Unknown6656.Serialization;
 using Unknown6656.Generics;
-using Unknown6656.Runtime;
 using Unknown6656.Common;
 
 namespace Unknown6656.Imaging;
@@ -83,7 +83,6 @@ public static unsafe class BitmapExtensions
         using MemoryStream ms = new();
 
         BitmapExtensions.SaveAsJPEG(bmp, ms, quality_level);
-
         DataStream.FromStream(ms).ToFile(path);
     }
 

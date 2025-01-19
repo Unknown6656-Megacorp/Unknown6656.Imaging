@@ -5,8 +5,9 @@ using System.Drawing;
 using System.Linq;
 using System;
 
-using Unknown6656.Mathematics.LinearAlgebra;
 using Unknown6656.Imaging.Effects;
+using Unknown6656.Mathematics.LinearAlgebra;
+using Unknown6656.Mathematics.Geometry;
 using Unknown6656.Generics;
 using Unknown6656.Runtime;
 

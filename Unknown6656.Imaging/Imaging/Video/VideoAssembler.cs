@@ -1,5 +1,4 @@
 ﻿using System.Diagnostics.CodeAnalysis;
-using System.Runtime.Versioning;
 using System.Threading.Tasks;
 using System.Drawing.Imaging;
 using System.Drawing;
