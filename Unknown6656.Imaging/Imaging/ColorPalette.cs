@@ -135,9 +135,9 @@ public class ColorPalette
 
     public static ReadOnlyIndexer<ConsoleColorScheme, ColorPalette> ConsoleColorSchemes { get; } = new(scheme =>
     {
-        Dictionary<ConsoleColor, uint> dict = IColor.ConsoleColorSchemes[scheme];
+        Dictionary<SysConsoleColor, uint> dict = IColor.ConsoleColorSchemes[scheme];
 
-        return new(Enum.GetValues<ConsoleColor>().Select(color => (RGBAColor)dict[color]));
+        return new(Enum.GetValues<SysConsoleColor>().Select(color => (RGBAColor)dict[color]));
     });
 
     public static ColorPalette Windows10_ConsoleColors { get; } = ConsoleColorSchemes[ConsoleColorScheme.Windows10];

@@ -846,7 +846,10 @@ public sealed class QOIFCorruptedEffect
             return (Bitmap)bmp.Clone();
 
         using Bitmap cropped = BitmapExtensions.CropTo(bmp, region);
-        DataStream stream = DataStream.FromQOIFBitmap(cropped, FormatVersion);
+        using DataStream stream = new();
+
+        QOIF.SaveQOIFImage(cropped, stream, FormatVersion);
+
         Span<byte> dat = stream.Data;
         int corruptions = CorruptionCounts;
 
