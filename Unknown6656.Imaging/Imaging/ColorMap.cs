@@ -2,9 +2,15 @@
 using System.Linq;
 using System;
 
-using Unknown6656.Physics.Optics;
 using Unknown6656.Units.Thermodynamics;
+using Unknown6656.Units.Kinematics;
+using Unknown6656.Units.Euclidean;
+using Unknown6656.Units.Temporal;
+
+using Unknown6656.Physics.Optics;
+
 using Unknown6656.Mathematics.LinearAlgebra;
+
 using Unknown6656.Generics;
 
 namespace Unknown6656.Imaging;
@@ -25,7 +31,7 @@ public abstract class ColorMap
 
     public static ContinuousColorMap HueMap { get; } = new(s => RGBAColor.FromHSL(s * Scalar.Tau, 1, 1));
 
-    public static ContinuousColorMap VisibleSpectrum { get; } = new(s => SpectralBand.VisibleSpectralBand[(double)s].ToColor());
+    public static ContinuousColorMap VisibleSpectrum { get; } = ;
 
     public static DiscreteColorMap Terrain { get; } = new(
         (0, (.2, .2, .6)),
@@ -1018,6 +1024,27 @@ public abstract class ColorMap
 
     public static ContinuousColorMap Continuous(Func<Scalar, RGBAColor> function) => new(function);
 
+    public static DiscreteColorMap FromSpectra(IEnumerable<SpectralBand> bands) => FromSpectra(bands, Nanometer.One);
+
+    public static DiscreteColorMap FromSpectra(IEnumerable<SpectralBand> bands, Wavelength resolution)
+    {
+        List<Wavelength> wavelengths = [];
+
+        foreach (SpectralBand band in bands.SelectMany(band => band is DisjointSpectrum disjoint ? disjoint.SpectralBands : [band]))
+            if (band.IsSpectralLine)
+                wavelengths.Add((Wavelength)band);
+            else
+                wavelengths.AddRange(band.GetWavelengths(resolution));
+
+        return FromWavelengths(wavelengths.ToArray());
+    }
+
+    public static DiscreteColorMap FromSpectralBand(SpectralBand band) => FromSpectra([band]);
+
+    public static DiscreteColorMap FromFrequencies(params Frequency[] frequencies) => FromWavelengths(frequencies.ToArray(f => (Wavelength)(Speed.C0 / f)));
+
+    public static DiscreteColorMap FromWavelengths(params Wavelength[] wavelengths) => Uniform(wavelengths.ToArray(w => (RGBAColor)w));
+
 
     public static implicit operator ColorMap(RGBAColor[] colors) => Uniform(colors);
 
@@ -1034,6 +1061,30 @@ public class ContinuousColorMap
     public ContinuousColorMap(Func<Scalar, RGBAColor> function) => _func = function;
 
     public override RGBAColor Interpolate(Scalar c) => _func(c.Clamp());
+
+
+    public static ContinuousColorMap FromSpectralBand(Frequency min, Frequency max) => FromSpectralBand(new(min, max));
+
+    public static ContinuousColorMap FromSpectralBand(Wavelength min, Wavelength max) => FromSpectralBand(new(min, max));
+
+    public static new ContinuousColorMap FromSpectralBand(SpectralBand band)
+    {
+        if (band is DisjointSpectrum)
+            throw new ArgumentException("The band must not be a disjoint spectrum.", nameof(band));
+        else if (band.IsSpectralLine)
+        {
+            RGBAColor color = (Wavelength)band;
+
+            return new(_ => color);
+        }
+        else
+        {
+            Wavelength hi = band.HighestWavelength;
+            Wavelength lo = band.LowestWavelength;
+
+            return new ContinuousColorMap(x => (RGBAColor)(x * lo + (1 - x) * hi));
+        }
+    }
 
 
     public static implicit operator ContinuousColorMap(Func<Scalar, RGBAColor> function) => Continuous(function);
