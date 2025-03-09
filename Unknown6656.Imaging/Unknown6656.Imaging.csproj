@@ -1,6 +1,6 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
     <PropertyGroup>
-        <TargetFramework>net8.0</TargetFramework>
+        <TargetFramework>net9.0</TargetFramework>
 
         <LangVersion>preview</LangVersion>
         <EnablePreviewFeatures>True</EnablePreviewFeatures>
@@ -52,21 +52,21 @@
         </None>
     </ItemGroup>
     <ItemGroup>
-        <Compile Remove="old\**" />
-        <EmbeddedResource Remove="old\**" />
-        <None Remove="old\**" />
+        <Compile Remove="_tmp\**"/>
+        <Content Include="_tmp\**"/>
     </ItemGroup>
     <ItemGroup>
-        <PackageReference Include="System.Drawing.Common" Version="9.0.1" />
-        <PackageReference Include="System.Drawing.Primitives" Version="4.3.0" />
-        <PackageReference Include="Unknown6656.Runtime" Version="1.1.2" />
-        <PackageReference Include="Unknown6656.Mathematics" Version="1.0.2" />
-        <PackageReference Include="Unknown6656.Physics" Version="0.1.0" />
-        <PackageReference Include="Unknown6656.Serialization" Version="1.0.3" />
-        <PackageReference Include="Unknown6656.Units.F64" Version="0.1.0" />
+        <PackageReference Include="System.Drawing.Common" Version="9.0.2"/>
+        <PackageReference Include="System.Drawing.Primitives" Version="4.3.0"/>
+        <PackageReference Include="Unknown6656.Terminal" Version="1.5.434.8968"/>
+        <PackageReference Include="Unknown6656.Runtime" Version="1.1.4"/>
+        <PackageReference Include="Unknown6656.Mathematics" Version="1.0.2"/>
+        <PackageReference Include="Unknown6656.Physics" Version="0.1.0"/>
+        <PackageReference Include="Unknown6656.Serialization" Version="1.0.3"/>
+        <PackageReference Include="Unknown6656.Units.F64" Version="0.1.0"/>
     </ItemGroup>
     <ItemGroup>
-        <Service Include="{508349b6-6b84-4df5-91f0-309beebad82d}" />
+        <Service Include="{508349b6-6b84-4df5-91f0-309beebad82d}"/>
     </ItemGroup>
     <ItemGroup>
         <None Update="Imaging\Color.g.tt">
