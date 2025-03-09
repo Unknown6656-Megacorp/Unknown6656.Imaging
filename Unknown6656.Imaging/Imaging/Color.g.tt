@@ -1544,7 +1544,7 @@ var members = new string[]
 
         return kelvin.Kelvin();
     }",
-    @"public readonly ConsoleColor ToConsoleColor(ConsoleColorScheme color_scheme)
+    @"public readonly SysConsoleColor ToConsoleColor(ConsoleColorScheme color_scheme)
     {
         $type copy = this;
         Scalar norm = Scalar.Sqrt(3);
@@ -1714,7 +1714,17 @@ var members = new string[]
     @"public readonly bool Equals($type other, ColorTolerance tolerance) => DistanceTo(other, tolerance.Metric) <= tolerance.Tolerance;",
     @"public readonly void SetAsConsoleForeground() => Console.ForegroundColor = this;",
     @"public readonly void SetAsConsoleBackground() => Console.BackgroundColor = this;",
-    @"public static $type FromConsoleColor(ConsoleColor color, ConsoleColorScheme color_scheme) => ($type)IColor.ConsoleColorSchemes[color_scheme][color];",
+    @"public static $type FromConsoleColor(ConsoleColor color) => FromConsoleColor(color, ConsoleColorScheme.Windows10);",
+    @"public static $type FromConsoleColor(ConsoleColor color, ConsoleColorScheme color_scheme)
+    {
+        if (color.IsSystemColor)
+            return FromConsoleColor(color.ToSystemColor(), color_scheme);
+
+        System.Drawing.Color? rgb = color.IsDefault ? null : color.ToColor();
+
+        return rgb.HasValue ? rgb.Value : default($type);
+    }",
+    @"public static $type FromConsoleColor(SysConsoleColor color, ConsoleColorScheme color_scheme) => ($type)IColor.ConsoleColorSchemes[color_scheme][color];",
     @"public static $type FromComplexWrapped(Complex c) => FromComplexWrapped(c, 1);",
     @"public static $type FromComplexWrapped(Complex c, double α)
     {
