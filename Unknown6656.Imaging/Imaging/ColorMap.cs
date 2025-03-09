@@ -31,7 +31,9 @@ public abstract class ColorMap
 
     public static ContinuousColorMap HueMap { get; } = new(s => RGBAColor.FromHSL(s * Scalar.Tau, 1, 1));
 
-    public static ContinuousColorMap VisibleSpectrum { get; } = ;
+    public static ContinuousColorMap VisibleSpectrum { get; } = ContinuousColorMap.FromSpectralBand(SpectralBand.VisibleSpectralBand);
+
+    public static ContinuousColorMap ExtendedVisibleSpectrum { get; } = ContinuousColorMap.FromSpectralBand(SpectralBand.ExtendedVisibleSpectralBand);
 
     public static DiscreteColorMap Terrain { get; } = new(
         (0, (.2, .2, .6)),
