@@ -57,7 +57,7 @@ public class ASCIIConsoleRenderer
             for (int x = 0; x < w; ++x)
             {
                 if (!_grayscale)
-                    ConsoleExtensions.RGBForegroundColor = colors[x, y];
+                    Console.ForegroundColor = colors[x, y];
 
                 Output.Write(charset[(int)(colors[x, y].CIEGray * charset.Length)]);
             }

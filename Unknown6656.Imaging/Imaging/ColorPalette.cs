@@ -10,8 +10,8 @@ using System.Drawing;
 using System.Linq;
 using System;
 
-using Unknown6656.Physics.Optics;
 using Unknown6656.Mathematics.Statistics;
+using Unknown6656.Physics.Optics;
 using Unknown6656.Generics;
 
 namespace Unknown6656.Imaging;

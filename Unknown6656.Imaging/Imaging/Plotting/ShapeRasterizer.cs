@@ -47,7 +47,7 @@ public abstract class DrawableShape
             if (shape is Line2D line)
                 pass.DrawPolygon(mode, false, line.From, line.To);
             else if (shape is Triangle2D triangle)
-                pass.DrawPolygon(mode, true, triangle.CornerA, triangle.CornerB, triangle.CornerC);
+                pass.DrawPolygon(mode, true, triangle.VertexA, triangle.VertexB, triangle.VertexC);
             else if (shape is Parallelogram2D parallelogram)
                 pass.DrawPolygon(mode, true, parallelogram.BottomLeft, parallelogram.BottomRight, parallelogram.TopRight, parallelogram.TopLeft);
             else if (shape is Shape2D.ExclusiveOrShape or)

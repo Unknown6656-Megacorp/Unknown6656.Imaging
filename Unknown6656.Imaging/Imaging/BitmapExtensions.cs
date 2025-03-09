@@ -18,8 +18,8 @@ using Unknown6656.Mathematics.Numerics;
 using Unknown6656.Imaging.Plotting;
 using Unknown6656.Imaging.Effects;
 using Unknown6656.Serialization;
+using Unknown6656.Generics.Text;
 using Unknown6656.Generics;
-using Unknown6656.Common;
 
 namespace Unknown6656.Imaging;
 
@@ -156,8 +156,6 @@ public static unsafe class BitmapExtensions
                 return zncc / (σ1 * σ2 * total);
             }));
     }
-
-    public static HDRBitmap ToHDR(this Bitmap bmp) => new(bmp);
 
     public static BitmapMask ToMask(this Bitmap bmp, Func<RGBAColor, Scalar> func, bool ignore_alpha = false) => BitmapMask.FromBitmap(bmp, func, ignore_alpha);
 
