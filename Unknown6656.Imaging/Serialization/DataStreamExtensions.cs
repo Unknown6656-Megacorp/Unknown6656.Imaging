@@ -14,11 +14,11 @@ namespace Unknown6656.Serialization;
 public static unsafe class DataStreamExtensions
 {
     [SupportedOSPlatform(OS.WIN)]
-    public Bitmap ToBitmap(this DataStream @this) => (Bitmap)Image.FromStream(@this);
+    public static Bitmap ToBitmap(this DataStream @this) => (Bitmap)Image.FromStream(@this);
 
-    public Bitmap ToQOIFBitmap(this DataStream @this) => QOIF.LoadQOIFImage(@this);
+    public static Bitmap ToQOIFBitmap(this DataStream @this) => QOIF.LoadQOIFImage(@this);
 
-    public Bitmap ToRGBAEncodedBitmap(this DataStream @this)
+    public static Bitmap ToRGBAEncodedBitmap(this DataStream @this)
     {
         RGBAColor[] pixels = @this.ToArray<RGBAColor>();
         int len = pixels.Length;
@@ -35,7 +35,7 @@ public static unsafe class DataStreamExtensions
 
         Bitmap bitmap = new(fac, len / fac, PixelFormat.Format32bppArgb);
 
-        bitmap.LockRGBAPixels((ptr, _, _) => pixels.CopyTo(ptr));
+        bitmap.LockRGBAPixels((ptr, _, _) => pixels.CopyTo(new Span<RGBAColor>(ptr, pixels.Length)));
 
         return bitmap;
     }
@@ -62,6 +62,6 @@ public static unsafe class DataStreamExtensions
 
         bitmap.Save(ms, format);
 
-        return FromStream(ms);
+        return DataStream.FromStream(ms);
     }
 }
