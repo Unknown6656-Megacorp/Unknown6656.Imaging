@@ -1553,6 +1553,7 @@ var members = new string[]
                 orderby copy.EucledianRGBDistanceTo(($type)kvp.Value) / norm ascending
                 select kvp.Key).FirstOrDefault();
     }",
+    @"public readonly ConsoleColor ToConsoleColor() => new(ToARGB32());",
     @"public readonly int CompareTo([AllowNull] $type other)
     {
         int dist = ((Vector3)this).Length.CompareTo(((Vector3)other).Length);
@@ -1711,6 +1712,8 @@ var members = new string[]
     @"public readonly bool Equals($type other, ColorEqualityMetric metric) => Equals(other, metric, Scalar.ComputationalEpsilon);",
     @"public readonly bool Equals($type other, ColorEqualityMetric metric, double tolerance) => Equals(other, new(tolerance, metric));",
     @"public readonly bool Equals($type other, ColorTolerance tolerance) => DistanceTo(other, tolerance.Metric) <= tolerance.Tolerance;",
+    @"public readonly void SetAsConsoleForeground() => Console.ForegroundColor = this;",
+    @"public readonly void SetAsConsoleBackground() => Console.BackgroundColor = this;",
     @"public static $type FromConsoleColor(ConsoleColor color, ConsoleColorScheme color_scheme) => ($type)IColor.ConsoleColorSchemes[color_scheme][color];",
     @"public static $type FromComplexWrapped(Complex c) => FromComplexWrapped(c, 1);",
     @"public static $type FromComplexWrapped(Complex c, double α)
@@ -2055,6 +2058,7 @@ var members = new string[]
     @"public static $type operator /($type color, double factor) => new(color.$R / factor, color.$G / factor, color.$B / factor, color.$A / factor);",
     @"public static implicit operator (double r, double g, double b)($type color) => (color.$R, color.$G, color.$B);",
     @"public static implicit operator (double r, double g, double b, double α)($type color) => (color.$R, color.$G, color.$B, color.$A);",
+    @"public static implicit operator ConsoleColor($type color) => color.ToConsoleColor();",
     @"public static implicit operator $type((double r, double g, double b) color) => new(color.r, color.g, color.b, 1);",
     @"public static implicit operator $type((double r, double g, double b, double α) color) => new(color.r, color.g, color.b, color.α);",
     @"public static implicit operator Vector3($type color) => new(color.$R, color.$G, color.$B);",
@@ -2079,6 +2083,8 @@ var types = new (string name, Func<string, string> proc)[]
 //   All your changes to this file will be lost upon re-generation.  //
 ///////////////////////////////////////////////////////////////////////
 
+#nullable enable
+
 using System.Diagnostics.CodeAnalysis;
 using System.Runtime.CompilerServices;
 using System.Text.RegularExpressions;
@@ -2093,8 +2099,9 @@ using Unknown6656.Units.Thermodynamics;
 using Unknown6656.Mathematics.LinearAlgebra;
 using Unknown6656.Mathematics.Analysis;
 using Unknown6656.Mathematics;
+using Unknown6656.Generics.Text;
 using Unknown6656.Generics;
-using Unknown6656.Common;
+using Unknown6656.Runtime;
 
 namespace Unknown6656.Imaging;
 
